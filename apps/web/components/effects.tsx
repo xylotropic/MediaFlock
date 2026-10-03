@@ -60,7 +60,7 @@ export function OperationStatus({
       />
       <div>
         <strong>{label}</strong>
-        <span>Secure local workspace</span>
+        <span>Please wait a moment.</span>
       </div>
     </div>
   );

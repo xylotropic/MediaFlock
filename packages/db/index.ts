@@ -1,7 +1,9 @@
 import pg from "pg";
+import { attachDatabasePool } from "@vercel/functions";
 import { readFileSync } from "node:fs";
 import { getConfig } from "../domain/config";
 import { DomainError } from "../domain/errors";
+import { guardContextSecurity } from "../domain/session-security";
 export interface Context {
   workspaceId: string;
   userId: string;
@@ -9,26 +11,39 @@ export interface Context {
   kind: "human" | "token" | "worker";
   scopes: string[];
   tokenId?: string;
+  authSessionId?: string;
 }
 export type Tx = pg.PoolClient;
 let pool: pg.Pool | undefined;
 export function db() {
-  if (!pool)
+  if (!pool) {
     pool = new pg.Pool({
       connectionString: getConfig().databaseUrl,
       ssl:
-        getConfig().databaseTls || getConfig().databaseCaFile
+        getConfig().databaseTls ||
+        getConfig().databaseCaFile ||
+        getConfig().databaseCa
           ? {
-              ca: getConfig().databaseCaFile
-                ? readFileSync(getConfig().databaseCaFile!, "utf8")
-                : undefined,
+              ca:
+                getConfig().databaseCa ||
+                (getConfig().databaseCaFile
+                  ? readFileSync(getConfig().databaseCaFile!, "utf8")
+                  : undefined),
               rejectUnauthorized: true,
             }
           : undefined,
-      max: 12,
-      idleTimeoutMillis: 10000,
+      max: getConfig().databasePoolMax,
+      idleTimeoutMillis: 5000,
       connectionTimeoutMillis: 5000,
+      statement_timeout: 15000,
+      lock_timeout: 10000,
+      idle_in_transaction_session_timeout: 20000,
     });
+    if (process.env.VERCEL) attachDatabasePool(pool);
+    pool.on("error", () => {
+      console.error("Database pool connection interrupted.");
+    });
+  }
   return pool;
 }
 export async function scoped<T>(
@@ -38,9 +53,10 @@ export async function scoped<T>(
   const tx = await db().connect();
   try {
     await tx.query("begin");
+    await guardContextSecurity(tx, ctx);
     await tx.query("set local role mediaflock_app");
     await tx.query(
-      "select set_config('request.jwt.claim.sub',$1,true),set_config('mediaflock.workspace',$2,true),set_config('mediaflock.service',$3,true)",
+      "select set_config('request.jwt.claim.sub',$1,true),set_config('mediaflock.workspace',$2,true),set_config('mediaflock.service',$3,true),set_config('mediaflock.server_verified','1',true)",
       [ctx.userId, ctx.workspaceId, ctx.kind === "worker" ? "1" : "0"],
     );
     const workspace = (

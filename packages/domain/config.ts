@@ -69,6 +69,11 @@ export function getConfig() {
     databaseTls,
     origin,
     databaseCaFile: process.env.DATABASE_SSL_CA_FILE,
+    databaseCa: process.env.DATABASE_SSL_CA,
+    databasePoolMax: Math.min(
+      12,
+      Math.max(1, Number(process.env.DB_POOL_MAX) || 12),
+    ),
     secureCookies: parsedOrigin.protocol === "https:",
     databaseUrl: database.toString(),
     supabaseUrl: url,

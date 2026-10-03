@@ -82,13 +82,12 @@ export function AccountPermissionReview({
         {action.error && <ErrorNote message={action.error} />}
         <strong>{account.handle}</strong>
         <p className="small muted">
-          Confirm the permissions you checked in your provider or platform
-          account. The provider confirms connection but does not report granted
-          scopes.
+          Check permissions in Post for Me or your social account, then record
+          them here. A connection does not confirm publishing access.
         </p>
         <Field label="Account type">
           <select
-            aria-label="Verified account type"
+            aria-label="Account type"
             value={type}
             onChange={(e) => setType(e.target.value)}
           >
@@ -100,7 +99,7 @@ export function AccountPermissionReview({
           </select>
         </Field>
         <fieldset className="stack">
-          <legend>Permitted formats</legend>
+          <legend>Allowed formats</legend>
           {formatsByPlatform[account.platform]?.map((format) => (
             <label className="check-row" key={format}>
               <input
@@ -126,7 +125,7 @@ export function AccountPermissionReview({
             checked={publishing}
             onChange={(e) => setPublishing(e.target.checked)}
           />
-          Publishing permission is granted
+          I checked that publishing is allowed
         </label>
         <label className="check-row">
           <input
@@ -134,14 +133,14 @@ export function AccountPermissionReview({
             checked={feeds === true}
             onChange={(e) => setFeeds(e.target.checked)}
           />
-          I checked that feed access is granted
+          I checked that feed access is allowed
         </label>
-        <Field label="Where did you verify these permissions?">
+        <Field label="Where did you check these permissions?">
           <textarea
-            aria-label="Permission verification evidence"
+            aria-label="Permission review notes"
             value={evidence}
             onChange={(e) => setEvidence(e.target.value)}
-            placeholder="Record the permission screen or provider confirmation you checked."
+            placeholder="Describe the permission screen or confirmation you checked."
           />
         </Field>
       </div>

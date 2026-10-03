@@ -8,6 +8,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      MEDIAFLOCK_MEDIA_ISOLATION: docker
+      MEDIAFLOCK_DOCKER_CONTEXT: default
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -16,14 +19,17 @@ jobs:
       - run: npm install --global pnpm@10.33.0
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pnpm install --frozen-lockfile
+      - run: docker build --tag mediaflock-media-parser:debian-bookworm-v1-dee25505aaaf tools/media-parser
       - run: pnpm setup:demo
       - run: MEDIAFLOCK_ENV_FILE=.env.demo pnpm build
       - run: pnpm lint && pnpm typecheck && pnpm test
       - run: pnpm exec playwright install chrome
       - run: |
-          pnpm dev:demo > /tmp/mediaflock-web.log 2>&1 &
+          MEDIAFLOCK_SELF_SIGNUP_ENABLED=true MEDIAFLOCK_RECOVERY_CODES_ENABLED=true MEDIAFLOCK_SIGNUP_DAILY_WORKSPACES=1000 MEDIAFLOCK_SIGNUP_MAX_WORKSPACES=10000 pnpm dev:demo > /tmp/mediaflock-web.log 2>&1 &
           for attempt in $(seq 1 60); do
             if curl --fail --silent http://127.0.0.1:3211/api/health > /dev/null; then break; fi
             sleep 2
           done
+          pnpm exec tsx tests/browser-auth.ts
+          pnpm worker:demo > /tmp/mediaflock-worker.log 2>&1 &
           pnpm test:browser

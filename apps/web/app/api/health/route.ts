@@ -17,7 +17,7 @@ export async function GET() {
     return Response.json(
       {
         status: "unavailable",
-        message: "Configure and start local Supabase with pnpm setup.",
+        message: "MediaFlock is temporarily unavailable. Please try again.",
       },
       { status: 503 },
     );

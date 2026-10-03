@@ -1,4 +1,5 @@
 "use client";
+import { uploadOriginal } from "./upload";
 import { useState, useEffect } from "react";
 import {
   Plus,
@@ -59,7 +60,7 @@ function Loading({ error }: { error?: string }) {
   return error ? (
     <ErrorNote message={error} />
   ) : (
-    <OperationStatus label="Loading persisted records…" state="connecting" />
+    <OperationStatus label="Loading your content…" state="connecting" />
   );
 }
 function useFormAction() {
@@ -89,7 +90,7 @@ function WorkerButton({ compact = false }: { compact?: boolean }) {
         void a
           .run(
             () => request("worker", "POST", {}),
-            "Local worker started. Refresh records in a few seconds.",
+            "Demo processing started. Refresh in a few seconds.",
           )
           .catch(() => {})
       }
@@ -107,7 +108,7 @@ export function Overview() {
     <>
       <Header
         title="Overview"
-        description="Content awaiting your next decision."
+        description="Review drafts, upcoming posts and recent results."
         actions={
           <>
             <button className="btn primary" onClick={newContent}>
@@ -148,7 +149,7 @@ export function Overview() {
       </section>
       <section className="work-section">
         <div className="work-heading">
-          <h2>Next publications</h2>
+          <h2>Upcoming posts</h2>
           <button className="action-link" onClick={() => navigate("calendar")}>
             View calendar <ArrowRight size={13} />
           </button>
@@ -178,7 +179,7 @@ export function Overview() {
         <div className="work-heading">
           <h2>Recent results</h2>
           <button className="action-link" onClick={() => navigate("calendar")}>
-            View publications <ArrowRight size={13} />
+            View posted content <ArrowRight size={13} />
           </button>
         </div>
         {data.recentResults.length ? (
@@ -243,7 +244,7 @@ export function PackageEditor({
   }, [id, request]);
   return (
     <Modal
-      title={id ? "Edit source and brief" : "Create content package"}
+      title={id ? "Edit source and brief" : "Create content"}
       onClose={onClose}
       footer={
         <>
@@ -271,11 +272,11 @@ export function PackageEditor({
                     },
                   ),
                 (p) => onSaved(p.id),
-                "Content package saved.",
+                "Content saved.",
               )
             }
           >
-            {a.busy ? "Saving…" : "Save package"}
+            {a.busy ? "Saving…" : "Save content"}
             <ArrowRight size={12} />
           </button>
         </>
@@ -285,16 +286,16 @@ export function PackageEditor({
         {a.error && <ErrorNote message={a.error} />}
         <Field label="Title">
           <input
-            aria-label="Package title"
+            aria-label="Content title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="A clear name for this source"
+            placeholder="Give this content a name"
             maxLength={200}
           />
         </Field>
         <Field
           label="Source notes"
-          help="Original material, context and facts the variants should retain."
+          help="Add the material and facts each version should use."
         >
           <textarea
             aria-label="Source notes"
@@ -315,14 +316,14 @@ export function PackageEditor({
           <summary>Tags</summary>{" "}
           <Field label="Tags">
             <input
-              aria-label="Package tags"
+              aria-label="Content tags"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="process, campaign, product"
             />
           </Field>
         </details>
-        <Field label="Source assets">
+        <Field label="Source media">
           <div className="choices">
             {assets?.map((asset: any) => (
               <label key={asset.id} className="check-row">
@@ -345,14 +346,14 @@ export function PackageEditor({
             ))}
             {!assets?.length && (
               <div className="small muted" style={{ padding: 15 }}>
-                Upload media in Library, or create a text-only package.
+                Upload media in Library, or create content with text only.
               </div>
             )}
           </div>
         </Field>
         <div className="note">
-          Source revisions are retained. Each platform variant has its own
-          immutable revision history.
+          Your edits are saved. Each platform version has its own revision
+          history.
         </div>
       </div>
     </Modal>
@@ -378,7 +379,7 @@ export function Library() {
     <>
       <Header
         title="Library"
-        description="Original media and source content, with history preserved."
+        description="Your original media, source notes and saved content."
         actions={
           <>
             <button className="btn" onClick={() => setUpload(true)}>
@@ -399,7 +400,7 @@ export function Library() {
           label="Library view"
           options={[
             { value: "content", label: "Content" },
-            { value: "assets", label: "Media assets" },
+            { value: "assets", label: "Media" },
           ]}
           value={tab}
           onChange={setTab}
@@ -416,7 +417,8 @@ export function Library() {
           />
         </div>
         <span className="tiny muted">
-          {filtered?.length || 0} {tab === "content" ? "packages" : "assets"}
+          {filtered?.length || 0}{" "}
+          {tab === "content" ? "content items" : "media files"}
         </span>
       </div>
       {(packageError || assetError) && (
@@ -428,7 +430,7 @@ export function Library() {
             <article className="content-card" key={item.id}>
               <div className="row spread">
                 <FileText size={17} />
-                <span className="pill">{item.variant_count} variants</span>
+                <span className="pill">{item.variant_count} versions</span>
               </div>
               <h2>{item.title}</h2>
               <p className="small muted">
@@ -532,11 +534,11 @@ export function Library() {
                         }
                         download
                       >
-                        Derivative →
+                        Media version →
                       </a>
                     ) : (
                       <span className="tiny muted truncate" title={d.error}>
-                        {d.error || "Worker queue"}
+                        {d.error || "Waiting to process"}
                       </span>
                     )}
                   </div>
@@ -548,8 +550,8 @@ export function Library() {
       </div>
       {filtered?.length === 0 && (
         <Empty
-          title="No matching records"
-          description="Try a different search, upload media or create a content package."
+          title="No matching content"
+          description="Try another search, upload media, or create content."
         />
       )}
       {upload && <UploadModal onClose={() => setUpload(false)} />}{" "}
@@ -585,20 +587,21 @@ function UploadModal({ onClose }: { onClose: () => void }) {
             disabled={a.busy || !file}
             onClick={() =>
               a.submit(
-                () => {
-                  const form = new FormData();
-                  form.set("file", file!);
-                  form.set("tags", tags);
-                  form.set("notes", notes);
-                  return request("assets", "POST", form);
-                },
+                () =>
+                  uploadOriginal(request, file!, {
+                    tags: tags
+                      .split(",")
+                      .map((x) => x.trim())
+                      .filter(Boolean),
+                    notes,
+                  }),
                 onClose,
-                "Original media stored privately.",
+                "Media uploaded.",
               )
             }
           >
             {a.busy && <OperationOrb state="working" dark />}
-            {a.busy ? "Validating and storing…" : "Upload media"}
+            {a.busy ? "Uploading and checking…" : "Upload media"}
           </button>
         </>
       }
@@ -631,8 +634,8 @@ function UploadModal({ onClose }: { onClose: () => void }) {
           />
         </Field>
         <div className="note">
-          Dimensions, duration, file type and checksum are validated locally.
-          Originals are stored unchanged in private storage.
+          We check each file before you can add it to a post. Originals stay
+          unchanged in private storage.
         </div>
       </div>
     </Modal>
@@ -651,7 +654,7 @@ function AssetMetadataModal({
     [notes, setNotes] = useState(asset.notes);
   return (
     <Modal
-      title="Asset tags and notes"
+      title="Media tags and notes"
       onClose={onClose}
       footer={
         <button
@@ -668,11 +671,11 @@ function AssetMetadataModal({
                   notes,
                 }),
               onClose,
-              "Metadata saved.",
+              "Tags and notes saved.",
             )
           }
         >
-          Save metadata
+          Save tags and notes
         </button>
       }
     >
@@ -713,7 +716,7 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
     [cropY, setCropY] = useState(0.5);
   return (
     <Modal
-      title="Create a media derivative"
+      title="Create a media version"
       onClose={onClose}
       footer={
         <>
@@ -740,11 +743,11 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
                     ...(subtitles ? { subtitles } : {}),
                   }),
                 onClose,
-                "Media operation queued. Run the worker to process it.",
+                "Media version queued. Check Library when it is ready.",
               )
             }
           >
-            Queue processing
+            Create version
           </button>
         </>
       }
@@ -758,7 +761,7 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
         <div className="fields-2">
           <Field label="Width">
             <input
-              aria-label="Derivative width"
+              aria-label="Media version width"
               type="number"
               min={64}
               max={1920}
@@ -769,7 +772,7 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
           </Field>
           <Field label="Height">
             <input
-              aria-label="Derivative height"
+              aria-label="Media version height"
               type="number"
               min={64}
               max={1920}
@@ -784,7 +787,7 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
               value={fit}
               onChange={(e) => setFit(e.target.value)}
             >
-              <option value="letterbox">Letterbox — preserve full frame</option>
+              <option value="letterbox">Keep the full frame (letterbox)</option>
               <option value="crop">Crop to fit</option>
               <option value="stretch">Resize to exact dimensions</option>
             </select>
@@ -869,7 +872,7 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
           )}
         </div>
         {output === "mp4" && (
-          <Field label="Optional supplied SRT subtitles">
+          <Field label="Subtitles (SRT, optional)">
             <textarea
               aria-label="SRT subtitles"
               value={subtitles}
@@ -881,8 +884,7 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
           </Field>
         )}
         <div className="note">
-          The worker performs processing outside the web request, verifies the
-          output and checks the source checksum again.
+          Processing creates a separate file. Your original stays unchanged.
         </div>
       </div>
     </Modal>
@@ -902,17 +904,17 @@ export function Studio({
       {!packageId ? (
         <>
           <Header
-            title="Content Studio"
-            description="Turn source material into revisions for specific accounts."
+            title="Content"
+            description="Create a version of your content for each account."
             actions={
               <button className="btn primary" onClick={newContent}>
                 <Plus size={13} />
-                New package
+                New content
               </button>
             }
           />
           {error && <ErrorNote message={error} />}
-          <Panel title="Select a source package">
+          <Panel title="Choose your content">
             {packages?.map((p: any) => (
               <button
                 key={p.id}
@@ -931,7 +933,7 @@ export function Studio({
                     className="small muted"
                     style={{ display: "block", marginTop: 4 }}
                   >
-                    {p.variant_count} variants · {p.tags.join(", ")}
+                    {p.variant_count} versions · {p.tags.join(", ")}
                   </span>
                 </span>
                 <ArrowRight size={13} />
@@ -940,10 +942,10 @@ export function Studio({
             {!packages?.length && (
               <Empty
                 title="Start with source material"
-                description="An idea, text or uploaded media can become a content package."
+                description="Start with an idea, text or media, then create versions for your accounts."
                 action={
                   <button className="btn" onClick={newContent}>
-                    Create package
+                    Create content
                   </button>
                 }
               />
@@ -970,7 +972,7 @@ function PackageDetail({ id }: { id: string }) {
     <>
       <Header
         title={pkg.title}
-        description="Source and variants share a package; each account keeps its own revision history."
+        description="Each account has its own version and edit history."
         actions={
           <>
             <button className="btn" onClick={() => setEdit(true)}>
@@ -978,11 +980,11 @@ function PackageDetail({ id }: { id: string }) {
             </button>
             <button className="btn" onClick={() => setManual(true)}>
               <SquarePen size={12} />
-              Manual variant
+              Write a draft
             </button>
             <button className="btn primary" onClick={() => setGenerate(true)}>
               <Layers size={13} />
-              {mode === "demo" ? "Generate variants" : "Generate variants"}
+              {mode === "demo" ? "Generate versions" : "Generate versions"}
             </button>
           </>
         }
@@ -992,7 +994,7 @@ function PackageDetail({ id }: { id: string }) {
         <Panel title="Creative brief">
           <div className="panel-body">
             <p className="small" style={{ whiteSpace: "pre-wrap" }}>
-              {pkg.brief || "Add a creative brief to guide variants."}
+              {pkg.brief || "Add a brief to guide your drafts."}
             </p>
             <div className="divider" />
             <div className="eyebrow" style={{ marginBottom: 9 }}>
@@ -1033,18 +1035,16 @@ function PackageDetail({ id }: { id: string }) {
                 )}
               </div>
             ) : (
-              <p className="small muted">Text-only source package.</p>
+              <p className="small muted">Text-only content.</p>
             )}
-            <div className="tiny muted">
-              Original files retain their colors and checksums.
-            </div>
+            <div className="tiny muted">Original files stay unchanged.</div>
           </div>
         </Panel>
       </div>
       <div className="row spread" style={{ marginBottom: 16 }}>
-        <h2>Platform variants</h2>
+        <h2>Platform versions</h2>
         <span className="tiny muted">
-          Previews show content structure; native renders may differ.
+          Posts may look different when they appear on each platform.
         </span>
       </div>
       <div className="content-grid">
@@ -1065,9 +1065,9 @@ function PackageDetail({ id }: { id: string }) {
             </div>
             <div className="variant-preview">
               <div className="preview-label" style={{ marginBottom: 10 }}>
-                Approximate platform preview
+                Platform preview
               </div>
-              <h3>{v.payload.hook || v.payload.title || "Untitled hook"}</h3>
+              <h3>{v.payload.hook || v.payload.title || "Add a hook"}</h3>
               <p>{v.payload.caption || "No caption yet."}</p>
               {v.payload.cta && (
                 <p style={{ marginTop: 12, fontWeight: 550, color: "#333" }}>
@@ -1079,12 +1079,12 @@ function PackageDetail({ id }: { id: string }) {
               <div>
                 <div className="tiny muted">
                   {v.provenance === "demo_ai"
-                    ? "Test AI fixture"
+                    ? "Demo AI example"
                     : v.provenance === "fixture"
-                      ? "Seeded fixture"
+                      ? "Demo example"
                       : v.provenance === "openai"
                         ? "AI draft"
-                        : "Manual revision"}
+                        : "Written manually"}
                 </div>
                 <button className="action-link" onClick={() => setHistory(v)}>
                   Revision history
@@ -1107,8 +1107,8 @@ function PackageDetail({ id }: { id: string }) {
       </div>
       {pkg.variants.length === 0 && (
         <Empty
-          title="No variants yet"
-          description="Choose destination accounts and formats, then generate test drafts or write a manual variant."
+          title="No versions yet"
+          description="Choose accounts and formats, then generate versions or write a draft."
         />
       )}
       {edit && (
@@ -1154,8 +1154,8 @@ function GenerateModal({ pkg, onClose }: { pkg: any; onClose: () => void }) {
     <Modal
       title={
         mode === "demo"
-          ? "Generate variants"
-          : "Generate account-specific variants"
+          ? "Generate versions"
+          : "Generate versions for each account"
       }
       onClose={onClose}
       footer={
@@ -1174,15 +1174,15 @@ function GenerateModal({ pkg, onClose }: { pkg: any; onClose: () => void }) {
                   }),
                 onClose,
                 mode === "demo"
-                  ? "Fixture drafts created. Edit and review each revision."
-                  : "AI drafts created. Review required.",
+                  ? "Demo drafts created. Edit and review each version."
+                  : "AI drafts ready. Review them before requesting approval.",
               )
             }
           >
             {a.busy && <OperationOrb state="composing" dark />}
             {a.busy
               ? "Preparing drafts…"
-              : "Generate " + selections.length + " variants"}
+              : "Generate " + selections.length + " versions"}
           </button>
         </>
       }
@@ -1190,8 +1190,8 @@ function GenerateModal({ pkg, onClose }: { pkg: any; onClose: () => void }) {
       <div className="stack">
         {a.error && <ErrorNote message={a.error} />}
         <p className="small muted">
-          Select specific accounts. Each draft retrieves only that account’s
-          writing rules and accepted observations.
+          Choose your accounts. Each draft uses only that account’s writing
+          rules and findings you accepted.
         </p>
         <FocusBeam active={a.busy}>
           <div className="choices">
@@ -1259,8 +1259,8 @@ function GenerateModal({ pkg, onClose }: { pkg: any; onClose: () => void }) {
         </FocusBeam>
         <div className="note">
           {mode === "demo"
-            ? "Test AI returns labeled fixture drafts with no model calls."
-            : "OpenAI credentials and configured usage budget are required; manual writing remains available."}
+            ? "Demo drafts are preset examples. No AI service is called."
+            : "Connect OpenAI and set a usage limit to generate drafts. You can also write drafts yourself."}
         </div>
       </div>
     </Modal>
@@ -1307,8 +1307,8 @@ function VariantEditor({
     <Modal
       title={
         variant
-          ? "Edit variant · revision " + variant.revision
-          : "Write a manual variant"
+          ? "Edit version · revision " + variant.revision
+          : "Write a draft"
       }
       onClose={onClose}
       wide
@@ -1346,11 +1346,11 @@ function VariantEditor({
                   );
                 },
                 onClose,
-                "Immutable revision saved. Previous approval is no longer eligible.",
+                "Revision saved. Request approval again before publishing.",
               )
             }
           >
-            {a.busy ? "Saving…" : "Save revision"}
+            {a.busy ? "Saving…" : "Save draft"}
           </button>
         </>
       }
@@ -1360,7 +1360,7 @@ function VariantEditor({
         <div className="fields-2">
           <Field label="Destination account">
             <select
-              aria-label="Variant account"
+              aria-label="Version account"
               disabled={!!variant}
               value={accountId}
               onChange={(e) => {
@@ -1385,7 +1385,7 @@ function VariantEditor({
           </Field>
           <Field label="Format">
             <select
-              aria-label="Variant format"
+              aria-label="Version format"
               disabled={!!variant}
               value={format}
               onChange={(e) => setFormat(e.target.value)}
@@ -1402,7 +1402,7 @@ function VariantEditor({
           <div className="stack">
             <Field label="Hook">
               <input
-                aria-label="Variant hook"
+                aria-label="Version hook"
                 value={payload.hook}
                 onChange={(e) => change("hook", e.target.value)}
                 maxLength={300}
@@ -1410,7 +1410,7 @@ function VariantEditor({
             </Field>
             <Field label="Caption">
               <textarea
-                aria-label="Variant caption"
+                aria-label="Version caption"
                 value={payload.caption}
                 onChange={(e) => change("caption", e.target.value)}
                 style={{ minHeight: 150 }}
@@ -1418,7 +1418,7 @@ function VariantEditor({
             </Field>
             <Field label="Call to action">
               <input
-                aria-label="Variant call to action"
+                aria-label="Version call to action"
                 value={payload.cta}
                 onChange={(e) => change("cta", e.target.value)}
                 maxLength={500}
@@ -1440,7 +1440,7 @@ function VariantEditor({
                   .catch(() => {})
               }
             >
-              Suggest alternative hooks
+              Suggest hooks
             </button>
             {hooks && (
               <div className="note">
@@ -1462,7 +1462,7 @@ function VariantEditor({
               <>
                 <Field label="YouTube title">
                   <input
-                    aria-label="Variant title"
+                    aria-label="Version title"
                     value={payload.title}
                     onChange={(e) => change("title", e.target.value)}
                     maxLength={120}
@@ -1470,7 +1470,7 @@ function VariantEditor({
                 </Field>
                 <Field label="YouTube description">
                   <textarea
-                    aria-label="Variant description"
+                    aria-label="Version description"
                     value={payload.description}
                     onChange={(e) => change("description", e.target.value)}
                   />
@@ -1479,7 +1479,7 @@ function VariantEditor({
             )}
             <Field label="Visibility">
               <select
-                aria-label="Variant visibility"
+                aria-label="Version visibility"
                 value={payload.visibility}
                 onChange={(e) => change("visibility", e.target.value)}
               >
@@ -1494,7 +1494,7 @@ function VariantEditor({
             </Field>
             <Field
               label="Platform settings (JSON)"
-              help="Only documented provider settings can be delivered; approval includes these values."
+              help="Use settings supported by your publishing service. These settings are included when you request approval."
             >
               <textarea
                 aria-label="Platform settings JSON"
@@ -1503,7 +1503,7 @@ function VariantEditor({
                 onChange={(e) => setSettingsText(e.target.value)}
               />
             </Field>
-            <Field label="Ordered media">
+            <Field label="Media order">
               <div className="choices">
                 {assets?.map((asset: any) => {
                   const selected = payload.media.find(
@@ -1513,7 +1513,7 @@ function VariantEditor({
                     <div key={asset.id} className="choice">
                       <input
                         type="checkbox"
-                        aria-label={"Variant media " + asset.filename}
+                        aria-label={"Version media " + asset.filename}
                         checked={!!selected}
                         onChange={(e) =>
                           change(
@@ -1532,7 +1532,7 @@ function VariantEditor({
                       <span className="tiny grow">{asset.filename}</span>
                       {selected && (
                         <select
-                          aria-label={"Derivative for " + asset.filename}
+                          aria-label={"Media version for " + asset.filename}
                           value={selected.derivativeId || ""}
                           onChange={(e) =>
                             change(
@@ -1576,9 +1576,8 @@ function VariantEditor({
           </div>
         </div>
         <div className="note">
-          Saving creates a new revision. Approval and delivery are separate
-          decisions. Active deliveries must be cancelled and confirmed before
-          this variant can be edited.
+          Saving creates a new revision. Request approval again after edits.
+          Cancel active deliveries and wait for confirmation before editing.
         </div>
       </div>
     </Modal>
@@ -1649,8 +1648,8 @@ function UTMBuilder({
       {value && <div className="mono">{value}</div>}
       {error && <ErrorNote message={error} />}
       <p className="tiny muted">
-        UTM parameters label referral traffic. They do not independently measure
-        conversions.
+        UTM tags identify traffic from this link. They do not measure
+        conversions on their own.
       </p>
     </div>
   );
@@ -1684,7 +1683,7 @@ function RequestApprovalModal({
     [disambiguation, setDisambiguation] = useState("reject");
   return (
     <Modal
-      title={job ? "Request a new schedule" : "Request human approval"}
+      title={job ? "Request a new schedule" : "Request approval"}
       onClose={onClose}
       footer={
         <>
@@ -1716,7 +1715,7 @@ function RequestApprovalModal({
                   );
                 },
                 onClose,
-                "Approval requested for this exact revision and time.",
+                "Approval requested for this post and publishing time.",
               )
             }
           >
@@ -1744,7 +1743,7 @@ function RequestApprovalModal({
           <br />
           Visibility: {variant.payload?.visibility || "public"}
         </div>
-        <Field label={"Intended time · " + timezone}>
+        <Field label={"Publishing time · " + timezone}>
           <input
             aria-label="Approval scheduled time"
             type="datetime-local"
@@ -1753,20 +1752,22 @@ function RequestApprovalModal({
             required
           />
         </Field>
-        <Field label="Daylight-saving ambiguity">
+        <Field label="Daylight saving time">
           <select
             aria-label="Daylight saving choice"
             value={disambiguation}
             onChange={(e) => setDisambiguation(e.target.value)}
           >
-            <option value="reject">Reject missing/repeated times</option>
+            <option value="reject">
+              Reject times that do not exist or occur twice
+            </option>
             <option value="earlier">Earlier occurrence</option>
             <option value="later">Later occurrence</option>
           </select>
         </Field>
         <div className="note">
-          Approval binds the account, revision, ordered media, metadata,
-          visibility and this time. Any later change requires a new approval.
+          Review the account, content, media, settings, visibility and time. Any
+          change requires a new approval.
         </div>
       </div>
     </Modal>
@@ -1781,7 +1782,7 @@ function HistoryModal({
 }) {
   const { data, error } = useLoad("variants/" + variant.id + "/revisions");
   return (
-    <Modal title="Immutable revision history" onClose={onClose}>
+    <Modal title="Revision history" onClose={onClose}>
       <div className="stack">
         {error && <ErrorNote message={error} />}
         <div className="small">{variant.handle}</div>
@@ -1816,7 +1817,7 @@ export function Approvals() {
     <>
       <Header
         title="Approvals"
-        description="Review the exact account, revision, media and publishing time before distribution."
+        description="Check the content, account, media and time before approving a post."
       />
       <div className="tabs">
         {[
@@ -1892,9 +1893,7 @@ export function Approvals() {
                   className="btn primary compact"
                   onClick={() => setReview(ap)}
                 >
-                  {ap.status === "pending"
-                    ? "Review snapshot"
-                    : "Inspect decision"}
+                  {ap.status === "pending" ? "Review post" : "View decision"}
                   <ArrowRight size={12} />
                 </button>
               </div>
@@ -1905,7 +1904,7 @@ export function Approvals() {
       {visible?.length === 0 && (
         <Empty
           title="No requests in this view"
-          description="Request approval from a variant in Content Studio. Each request includes an immutable revision and time."
+          description="Open a draft in Content to request approval of its content and publishing time."
         />
       )}
       {review && (
@@ -1928,7 +1927,7 @@ function ApprovalReview({
   const s = ap.snapshot;
   return (
     <Modal
-      title="Review exact delivery snapshot"
+      title="Review this post"
       onClose={onClose}
       wide
       footer={
@@ -1966,12 +1965,12 @@ function ApprovalReview({
                     () =>
                       request("approvals/" + ap.id + "/approve", "POST", {}),
                     onClose,
-                    "Human approval recorded for this snapshot.",
+                    "Post approved.",
                   )
                 }
               >
                 <Check size={13} />
-                Approve this snapshot
+                Approve this post
               </button>
             </>
           ) : ap.status === "approved" ? (
@@ -1986,11 +1985,11 @@ function ApprovalReview({
                         reason: reason || "Revoked by reviewer",
                       }),
                     onClose,
-                    "Approval revoked; active deliveries require cancellation confirmation.",
+                    "Approval withdrawn. Cancel any scheduled delivery and wait for confirmation.",
                   )
                 }
               >
-                Revoke approval
+                Withdraw approval
               </button>
               <button
                 className="btn primary"
@@ -2000,12 +1999,12 @@ function ApprovalReview({
                     () =>
                       request("approvals/" + ap.id + "/schedule", "POST", {}),
                     onClose,
-                    "Delivery intent queued. The worker will submit and verify it.",
+                    "Post queued. Check its delivery status in Calendar.",
                   )
                 }
               >
                 <CalendarDaysIcon />
-                Schedule approved revision
+                Schedule approved post
               </button>
             </>
           ) : null}
@@ -2070,7 +2069,7 @@ function ApprovalReview({
               )}
             </div>
             <div>
-              <div className="eyebrow">Ordered media</div>
+              <div className="eyebrow">Media order</div>
               <div className="approval-media">
                 {s.media.map((m: any, i: number) =>
                   m.mimeType.startsWith("video") ? (
@@ -2100,9 +2099,7 @@ function ApprovalReview({
                   ),
                 )}
               </div>
-              {!s.media.length && (
-                <p className="tiny muted">Text-only delivery.</p>
-              )}
+              {!s.media.length && <p className="tiny muted">Text-only post.</p>}
               {s.media.map((m: any, i: number) => (
                 <div key={m.assetId} className="mono muted">
                   {i + 1}. {m.derivativeChecksum || m.checksum}
@@ -2111,7 +2108,7 @@ function ApprovalReview({
             </div>
           </div>
           <div className="stack">
-            <Field label="Platform metadata">
+            <Field label="Platform settings">
               <pre className="log">
                 {JSON.stringify(s.payload.settings, null, 2)}
               </pre>
@@ -2153,9 +2150,9 @@ function ApprovalReview({
             </div>
             <div className="note">
               {canApprove
-                ? "Only your authenticated human decision can grant approval. Drafting API and MCP tokens cannot approve."
-                : "An owner or reviewer must grant approval."}{" "}
-              Scheduling remains a separate operation.
+                ? "Approve only after you check the content, account, media and time."
+                : "An owner or reviewer must approve this post."}{" "}
+              Schedule the post separately after approval.
             </div>
           </div>
         </div>
@@ -2179,7 +2176,7 @@ export function JobInspector({
     [summary, setSummary] = useState<any>(null);
   return (
     <Modal
-      title="Publication timeline and receipt"
+      title="Post delivery details"
       onClose={onClose}
       wide
       footer={
@@ -2201,12 +2198,12 @@ export function JobInspector({
                         "POST",
                         {},
                       ),
-                    "Test observations queued. Process the queue.",
+                    "Demo metrics queued. Process the demo queue to collect them.",
                   )
                   .catch(() => {})
               }
             >
-              Collect test observations
+              Collect demo metrics
             </button>
           )}
           {job && job.state === "needs_reconciliation" && (
@@ -2218,13 +2215,13 @@ export function JobInspector({
                   .run(
                     () =>
                       request("publications/" + id + "/reconcile", "POST", {}),
-                    "Authoritative reconciliation queued.",
+                    "Delivery check queued.",
                   )
                   .then(reload)
                   .catch(() => {})
               }
             >
-              Reconcile
+              Check delivery
             </button>
           )}
           {job && !["published", "cancelled", "failed"].includes(job.state) && (
@@ -2235,7 +2232,7 @@ export function JobInspector({
                 void a
                   .run(
                     () => request("publications/" + id + "/cancel", "POST", {}),
-                    "Cancellation requested. Inspect confirmed status.",
+                    "Cancellation requested. Check delivery status for confirmation.",
                   )
                   .then(reload)
                   .catch(() => {})
@@ -2314,8 +2311,7 @@ export function JobInspector({
                     ))
                   ) : (
                     <p className="small muted">
-                      No runtime attempt. This may be a seeded historical
-                      fixture or a queued delivery.
+                      No delivery attempt is recorded for this post.
                     </p>
                   )}
                 </div>
@@ -2334,7 +2330,7 @@ export function JobInspector({
                       .catch(() => {})
                   }
                 >
-                  Summarize supplied observations
+                  Summarize post metrics
                 </button>
                 {summary && (
                   <div className="note">
@@ -2355,14 +2351,13 @@ export function JobInspector({
                     2,
                   )}
                 </pre>
-                <h3>Immutable intent</h3>
+                <h3>Approved post details</h3>
                 <pre className="log">
                   {JSON.stringify(job.snapshot, null, 2)}
                 </pre>
                 <div className="note">
-                  Provider acceptance and platform publication are separate.
-                  Unknown responses require reconciliation; they are never
-                  automatically resubmitted.
+                  Service acceptance does not confirm publication. We check
+                  uncertain results and do not automatically resend them.
                 </div>
               </div>
             </div>
@@ -2414,9 +2409,7 @@ export function Calendar() {
     <>
       <Header
         title="Calendar"
-        description={
-          "Scheduling intents and confirmed delivery state · " + timezone
-        }
+        description={"Scheduled posts and delivery status · " + timezone}
         actions={
           <>
             {mode === "demo" && <WorkerButton />}
@@ -2475,8 +2468,8 @@ export function Calendar() {
             value={state}
             onChange={(e) => setState(e.target.value)}
           >
-            <option value="active">Active deliveries</option>
-            <option value="all">All states</option>
+            <option value="active">Active posts</option>
+            <option value="all">All statuses</option>
             <option value="published">Published</option>
             <option value="cancelled">Cancelled</option>
             <option value="failed">Failed</option>
@@ -2587,16 +2580,16 @@ export function Calendar() {
           </table>
           {filtered?.length === 0 && (
             <Empty
-              title="No deliveries in this view"
-              description="Schedule approved revisions from Approvals, or change the filters."
+              title="No posts in this view"
+              description="Schedule approved posts from Approvals, or change the filters."
             />
           )}
         </div>
       )}
       <div className="note section-space">
-        Changing the time invalidates approval. Cancel the old delivery, wait
-        for confirmation, then request approval of a new schedule.
-        Provider-owned jobs are never published again by the local scheduler.
+        Changing the time requires a new approval. Cancel the old delivery and
+        wait for confirmation before requesting a new schedule. MediaFlock does
+        not resend posts already managed by your publishing service.
       </div>
       {reschedule && (
         <RequestApprovalModal
@@ -2650,7 +2643,7 @@ export function Analytics() {
     <>
       <Header
         title="Analytics"
-        description="Permitted observations, transparent baselines and visible data freshness."
+        description="Post performance, comparisons and recent updates."
         actions={
           <select
             className="select"
@@ -2669,27 +2662,27 @@ export function Analytics() {
       />
       {error && <ErrorNote message={error} />}
       <Panel
-        title="Views at the 24-hour observation horizon"
-        action={<span className="pill">{chartRows.length} observations</span>}
+        title="Views after 24 hours"
+        action={<span className="pill">{chartRows.length} measurements</span>}
       >
         <div className="panel-body">
           {chartRows.length ? (
             <ObservationChart observations={chartRows} onInspect={setDetail} />
           ) : (
             <Empty
-              title="No comparable view observations"
-              description="Wait for a permitted snapshot or collect test observations after simulated publication."
+              title="No view metrics yet"
+              description="Metrics appear after your approved posts publish and account access permits them."
             />
           )}
           <div className="tiny muted">
             {account === "all"
-              ? "Across accounts: descriptive display only; platform metrics may not be comparable."
-              : "Compare the same account, format and observation horizon."}{" "}
-            Lifetime snapshots are never added together.
+              ? "Accounts appear together here. Metrics from different platforms may use different definitions."
+              : "Compare posts from the same account and format, measured after the same time."}{" "}
+            Lifetime totals are never added together.
           </div>
         </div>
       </Panel>
-      <Panel title="Period inspection · UTC date boundaries">
+      <Panel title="Date range (UTC)">
         <div className="panel-body stack">
           <div className="row wrap">
             <Field label="From">
@@ -2716,7 +2709,7 @@ export function Analytics() {
               >
                 <option value="posts">Posts published during period</option>
                 <option value="changes">
-                  Metric changes observed during period
+                  Changes measured during this period
                 </option>
               </select>
             </Field>
@@ -2731,7 +2724,7 @@ export function Analytics() {
                   <th>
                     {periodView === "posts"
                       ? "Latest lifetime views"
-                      : "Observed view change"}
+                      : "Change in views"}
                   </th>
                   <th>Availability</th>
                 </tr>
@@ -2772,10 +2765,8 @@ export function Analytics() {
       </Panel>
       <div className="section-space panel">
         <div className="panel-head">
-          <h2>Inspectable observations</h2>
-          <span className="tiny muted">
-            Source, definition and raw response retained
-          </span>
+          <h2>Post metrics</h2>
+          <span className="tiny muted">Sources and measurement details</span>
         </div>
         <div className="table-scroll">
           <table>
@@ -2785,9 +2776,9 @@ export function Analytics() {
                 <th>Account</th>
                 <th>Metric</th>
                 <th>Value</th>
-                <th>Horizon</th>
-                <th>Comparable baseline</th>
-                <th>Source & freshness</th>
+                <th>Measured after</th>
+                <th>Comparison baseline</th>
+                <th>Source & update time</th>
                 <th />
               </tr>
             </thead>
@@ -2823,7 +2814,7 @@ export function Analytics() {
                   </td>
                   <td className="tiny muted">
                     {x.baseline?.median === null
-                      ? "Insufficient observations"
+                      ? "Not enough data"
                       : `${num(x.baseline?.median)} median · ${x.baseline?.count} other posts`}
                   </td>
                   <td className="tiny muted">
@@ -2846,15 +2837,15 @@ export function Analytics() {
         </div>
       </div>
       <div className="note section-space">
-        Missing, unknown, unsupported and permission-blocked metrics are
-        distinct from zero. Combined platform reach is never represented as
-        deduplicated people. Comparable baselines retain matched evidence and
-        sample sizes. Period changes require actual boundary observations.
+        Missing or blocked metrics are not zero. Totals across platforms may
+        include the same person more than once. Comparisons use matching posts
+        and show sample sizes. Period changes require measurements at both
+        boundaries.
       </div>
       {data?.collections?.some((x: any) =>
         ["failed", "missed"].includes(x.state),
       ) && (
-        <Panel title="Synchronization attention">
+        <Panel title="Metrics that need attention">
           {data.collections
             .filter((x: any) => ["failed", "missed"].includes(x.state))
             .map((x: any) => (
@@ -2871,7 +2862,7 @@ export function Analytics() {
         </Panel>
       )}
       {detail && (
-        <Modal title="Observation evidence" onClose={() => setDetail(null)}>
+        <Modal title="Metric details" onClose={() => setDetail(null)}>
           <div className="stack">
             <div className="row">
               <Platform platform={detail.platform} />
@@ -2896,9 +2887,9 @@ export function Analytics() {
             </div>
             {detail.baseline && (
               <div className="note">
-                <strong>Comparable baseline:</strong>{" "}
+                <strong>Comparison baseline:</strong>{" "}
                 {detail.baseline.median === null
-                  ? "Insufficient observations"
+                  ? "Not enough data"
                   : `${num(detail.baseline.median)} median from ${detail.baseline.count} other posts; difference ${num(detail.baseline.difference)}`}
                 <br />
                 {detail.baseline.method}
@@ -2929,7 +2920,7 @@ export function Experiments() {
     <>
       <Header
         title="Experiments"
-        description="Change one variable. Retain the evidence. Qualify the next step."
+        description="Compare posts with one planned difference."
         actions={
           <button className="btn primary" onClick={() => setCreate(true)}>
             <Plus size={13} />
@@ -2961,10 +2952,10 @@ export function Experiments() {
             <div className="divider" />
             <div className="row spread">
               <span className="tiny muted">
-                Planned: {e.planned_samples} posts per arm
+                Planned: {e.planned_samples} posts per group
               </span>
               <button className="btn compact" onClick={() => setSelected(e.id)}>
-                Inspect evidence <ArrowRight size={12} />
+                View results <ArrowRight size={12} />
               </button>
             </div>
           </article>
@@ -2972,14 +2963,13 @@ export function Experiments() {
       </div>
       {experiments?.length === 0 && (
         <Empty
-          title="Define a testable hypothesis"
-          description="Choose accounts, formats, one changed variable, a primary metric and an observation horizon."
+          title="Plan your first experiment"
+          description="Choose accounts, formats, one change, a main metric and when to measure it."
         />
       )}
       <div className="note section-space">
-        Organic posts generally lack controlled audience assignment. These
-        comparisons are observational. Views are not independent replications;
-        one post cannot establish a winner.
+        These posts may reach different audiences. Results show associations,
+        not proof of cause. One post cannot establish a winner.
       </div>
       {create && (
         <ExperimentEditor
@@ -3015,7 +3005,7 @@ function ExperimentEditor({
     [samples, setSamples] = useState(3),
     [selected, setSelected] = useState<string[]>([]),
     [endCondition, setEndCondition] = useState(
-      "Planned sample size and evaluation horizon reached",
+      "Planned posts measured after the chosen time",
     );
   return (
     <Modal
@@ -3080,13 +3070,13 @@ function ExperimentEditor({
             aria-label="Experiment hypothesis"
             value={hypothesis}
             onChange={(e) => setHypothesis(e.target.value)}
-            placeholder="A concrete opening may be associated with higher median 24-hour views…"
+            placeholder="Posts with a specific opening may receive more views after 24 hours…"
           />
         </Field>
         <div className="fields-2">
-          <Field label="Changed variable">
+          <Field label="Change to compare">
             <select
-              aria-label="Changed variable"
+              aria-label="Change to compare"
               value={variable}
               onChange={(e) => setVariable(e.target.value)}
             >
@@ -3096,9 +3086,9 @@ function ExperimentEditor({
               <option value="publishing_window">Publishing window</option>
             </select>
           </Field>
-          <Field label="Primary outcome">
+          <Field label="Main metric">
             <select
-              aria-label="Primary outcome"
+              aria-label="Main metric"
               value={metric}
               onChange={(e) => setMetric(e.target.value)}
             >
@@ -3109,9 +3099,9 @@ function ExperimentEditor({
               )}
             </select>
           </Field>
-          <Field label="Observation horizon (hours)">
+          <Field label="Measure after (hours)">
             <input
-              aria-label="Observation horizon"
+              aria-label="Measurement time"
               type="number"
               min={1}
               max={720}
@@ -3119,7 +3109,7 @@ function ExperimentEditor({
               onChange={(e) => setHorizon(Number(e.target.value))}
             />
           </Field>
-          <Field label="Planned posts per arm">
+          <Field label="Planned posts per group">
             <input
               aria-label="Planned samples"
               type="number"
@@ -3142,7 +3132,7 @@ function ExperimentEditor({
             </Field>
           )}
         </div>
-        <Field label="Eligible accounts and formats">
+        <Field label="Accounts and formats">
           <div className="choices">
             {accounts?.map((x: any) => (
               <label key={x.id} className="check-row">
@@ -3163,11 +3153,11 @@ function ExperimentEditor({
             ))}
           </div>
           <span className="help">
-            Supported formats on each selected account are eligible. Results are
-            stratified by account and format.
+            Use supported formats on each account. Results are grouped by
+            account and format.
           </span>
         </Field>
-        <Field label="End condition">
+        <Field label="When to finish">
           <input
             aria-label="Experiment end condition"
             value={endCondition}
@@ -3175,8 +3165,8 @@ function ExperimentEditor({
           />
         </Field>
         <div className="note">
-          At least three posts per arm are required before a descriptive signal
-          is reported. Account, format and observation horizon must match.
+          Use at least three posts in each group. Compare the same account and
+          format at the same measurement time.
         </div>
       </div>
     </Modal>
@@ -3197,13 +3187,13 @@ function ExperimentInspector({
     [observation, setObservation] = useState<any>(null);
   return (
     <Modal
-      title={data?.experiment.name || "Experiment evidence"}
+      title={data?.experiment.name || "Experiment results"}
       onClose={onClose}
       wide
       footer={
         <>
           <button className="btn" onClick={() => setAssign(!assign)}>
-            Assign variant
+            Assign version
           </button>
           <button
             className="btn"
@@ -3212,7 +3202,7 @@ function ExperimentInspector({
               void a
                 .run(
                   () => request("experiments/" + id + "/evaluate", "POST", {}),
-                  "Comparison saved with its supporting snapshot IDs.",
+                  "Comparison and supporting measurements saved.",
                 )
                 .catch(() => {})
             }
@@ -3245,15 +3235,15 @@ function ExperimentInspector({
             <div className="note">
               <strong>Hypothesis:</strong> {data.experiment.hypothesis}
               <br />
-              <strong>Changed variable:</strong>{" "}
+              <strong>Change to compare:</strong>{" "}
               {data.experiment.changed_variable}
               <br />
-              <strong>Primary outcome:</strong> {data.experiment.primary_metric}
+              <strong>Main metric:</strong> {data.experiment.primary_metric}
               {data.experiment.denominator
                 ? " / " + data.experiment.denominator
                 : ""}{" "}
               at {data.experiment.horizon_hours}h<br />
-              <strong>End condition:</strong> {data.experiment.end_condition}
+              <strong>When to finish:</strong> {data.experiment.end_condition}
             </div>
             <div className="row spread">
               <h2>{data.comparison.status}</h2>
@@ -3275,7 +3265,7 @@ function ExperimentInspector({
                   </div>
                   <div className="comparison-grid section-space">
                     <div>
-                      <div className="eyebrow">Arm A</div>
+                      <div className="eyebrow">Group A</div>
                       <div className="metric-value">{num(g.A.median)}</div>
                       <div className="tiny muted">{g.A.count} posts</div>
                       <div className="bar-track section-space">
@@ -3298,7 +3288,7 @@ function ExperimentInspector({
                       </div>
                     </div>
                     <div>
-                      <div className="eyebrow">Arm B</div>
+                      <div className="eyebrow">Group B</div>
                       <div className="metric-value">{num(g.B.median)}</div>
                       <div className="tiny muted">{g.B.count} posts</div>
                       <div className="bar-track section-space">
@@ -3334,8 +3324,8 @@ function ExperimentInspector({
             ))}
             {!data.comparison.groups.length && (
               <Empty
-                title="Insufficient evidence"
-                description="Assign variants, publish simulated posts and collect comparable observations before evaluating."
+                title="Not enough data"
+                description="Assign versions and publish approved posts. Compare results after metrics arrive for the same measurement time."
               />
             )}
             <div className="note">
@@ -3352,7 +3342,7 @@ function ExperimentInspector({
                 <table>
                   <thead>
                     <tr>
-                      <th>Arm</th>
+                      <th>Group</th>
                       <th>Account</th>
                       <th>Content</th>
                       <th>Revision</th>
@@ -3375,16 +3365,16 @@ function ExperimentInspector({
                 </table>
               </div>
             </Panel>
-            <Panel title="Supporting observations">
+            <Panel title="Supporting metrics">
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>Arm</th>
+                      <th>Group</th>
                       <th>Metric</th>
                       <th>Value</th>
-                      <th>Horizon</th>
-                      <th>Provenance</th>
+                      <th>Measured after</th>
+                      <th>Source</th>
                       <th>Snapshot ID</th>
                     </tr>
                   </thead>
@@ -3436,7 +3426,7 @@ function ExperimentInspector({
                       .catch(() => {})
                   }
                 >
-                  Draft an account observation
+                  Draft a finding for this account
                 </button>
                 {observation && (
                   <button
@@ -3455,13 +3445,13 @@ function ExperimentInspector({
                                 text: observation.output.observation,
                               },
                             ),
-                          "Observation saved as a proposal. Accept it explicitly in Accounts.",
+                          "Finding saved. Accept it in Accounts to use it as a writing rule.",
                         )
                         .then(() => setObservation(null))
                         .catch(() => {})
                     }
                   >
-                    Save proposed observation
+                    Save proposed finding
                   </button>
                 )}
               </div>
@@ -3499,9 +3489,9 @@ function AssignmentForm({
     <div className="note">
       <div className="stack">
         {a.error && <ErrorNote message={a.error} />}
-        <Field label="Source package">
+        <Field label="Source content">
           <select
-            aria-label="Assignment package"
+            aria-label="Assignment content"
             value={packageId}
             onChange={async (e) => {
               setPackageId(e.target.value);
@@ -3518,7 +3508,7 @@ function AssignmentForm({
               );
             }}
           >
-            <option value="">Choose package</option>
+            <option value="">Choose content</option>
             {packages?.map((x: any) => (
               <option key={x.id} value={x.id}>
                 {x.title}
@@ -3527,13 +3517,13 @@ function AssignmentForm({
           </select>
         </Field>
         <div className="fields-2">
-          <Field label="Variant">
+          <Field label="Version">
             <select
-              aria-label="Assignment variant"
+              aria-label="Assignment version"
               value={variantId}
               onChange={(e) => setVariantId(e.target.value)}
             >
-              <option value="">Choose eligible variant</option>
+              <option value="">Choose a supported version</option>
               {variants.map((x) => (
                 <option key={x.id} value={x.id}>
                   {x.handle} · revision {x.revision}
@@ -3541,9 +3531,9 @@ function AssignmentForm({
               ))}
             </select>
           </Field>
-          <Field label="Arm">
+          <Field label="Group">
             <select
-              aria-label="Experiment arm"
+              aria-label="Experiment group"
               value={arm}
               onChange={(e) => setArm(e.target.value)}
             >
@@ -3569,11 +3559,11 @@ function AssignmentForm({
                   },
                 ),
               onDone,
-              "Variant assigned to experiment.",
+              "Version assigned to experiment.",
             )
           }
         >
-          Assign exact revision
+          Assign this revision
         </button>
       </div>
     </div>
@@ -3588,7 +3578,7 @@ export function Accounts() {
     <>
       <Header
         title="Accounts"
-        description="Verified destination identities, permissions and account-specific context."
+        description="Connected accounts, permissions and writing preferences."
         actions={
           <button className="btn primary" onClick={() => setConnect(true)}>
             <Plus size={13} />
@@ -3650,9 +3640,9 @@ export function Accounts() {
         </table>
       </div>
       <div className="note section-space">
-        YouTube videos and Shorts use one authorized YouTube account.
-        Capabilities distinguish supported, unsupported, unknown and permission
-        missing. Account rules stay within this workspace and account.
+        YouTube videos and Shorts share one connected account. Features can be
+        supported, unsupported, unknown or missing permission. Rules apply only
+        to this account in this workspace.
       </div>
       {inspect && (
         <AccountInspector id={inspect} onClose={() => setInspect(null)} />
@@ -3705,7 +3695,7 @@ export function ConnectModal({ onClose }: { onClose: () => void }) {
                 )
               }
             >
-              Begin authorization
+              Get connection link
             </button>
           )}
         </>
@@ -3746,12 +3736,12 @@ export function ConnectModal({ onClose }: { onClose: () => void }) {
         )}
         <p className="small muted">
           {mode === "demo"
-            ? "External authorization is disabled in this test environment."
-            : "Authorize publishing and feed access with the provider. Review your granted permissions after returning."}
+            ? "Account authorization is disabled in this test environment."
+            : "Choose publishing and feed permissions on the platform. Review those permissions when you return."}
         </p>
         {result && (
           <a className="btn primary" href={result.url}>
-            Continue to authorization <ExternalLink size={12} />
+            Continue to provider <ExternalLink size={12} />
           </a>
         )}
       </div>
@@ -3782,7 +3772,7 @@ function AccountInspector({
   }
   return (
     <Modal
-      title={data?.account.handle || "Account context"}
+      title={data?.account.handle || "Account preferences"}
       onClose={onClose}
       wide
       footer={
@@ -3819,7 +3809,7 @@ function AccountInspector({
                 void a
                   .run(
                     () => request("accounts/" + id + "/disconnect", "POST", {}),
-                    "Account disconnected; pending deliveries require cancellation confirmation.",
+                    "Account disconnected. Cancel pending deliveries and wait for confirmation.",
                   )
                   .catch(() => {})
               }
@@ -3839,12 +3829,12 @@ function AccountInspector({
                       writingGuidelines: guidelines,
                       timezone: tz,
                     }),
-                  "Account context saved.",
+                  "Account preferences saved.",
                 )
                 .catch(() => {})
             }
           >
-            Save context
+            Save preferences
           </button>
         </>
       }
@@ -3890,14 +3880,14 @@ function AccountInspector({
                     onChange={(e) => setTz(e.target.value)}
                   />
                 </Field>
-                <h3>User-authored rules</h3>
+                <h3>Your writing rules</h3>
                 {data.rules.map((r: any) => (
                   <div className="note" key={r.id}>
                     {r.text}
                     <div className="tiny muted">{r.source}</div>
                   </div>
                 ))}
-                <Field label="Add an explicit rule">
+                <Field label="Add a rule">
                   <textarea
                     aria-label="New account rule"
                     value={rule}
@@ -3914,7 +3904,7 @@ function AccountInspector({
                           request("accounts/" + id + "/rules", "POST", {
                             text: rule,
                           }),
-                        "Account-specific rule saved.",
+                        "Account rule saved.",
                       )
                       .then(() => setRule(""))
                       .catch(() => {})
@@ -3927,8 +3917,8 @@ function AccountInspector({
                 <h3>Permissions</h3>
                 <p className="small muted">
                   {data.account.capabilities.operations?.publish === "supported"
-                    ? "Publishing confirmed"
-                    : "Publishing requires a permission review"}
+                    ? "Publishing supported"
+                    : "Review permissions before publishing"}
                 </p>
                 {mode === "live" && (
                   <button
@@ -3944,7 +3934,7 @@ function AccountInspector({
                     {JSON.stringify(data.account.capabilities, null, 2)}
                   </pre>
                 </details>
-                <h3>Evidence-backed observations</h3>
+                <h3>Findings from your posts</h3>
                 {data.observations.length ? (
                   data.observations.map((o: any) => (
                     <div className="note" key={o.id}>
@@ -3972,24 +3962,23 @@ function AccountInspector({
                                     "POST",
                                     {},
                                   ),
-                                "Observation explicitly accepted as an account rule.",
+                                "Finding accepted as an account rule.",
                               )
                               .catch(() => {})
                           }
                         >
-                          Accept as a generation rule
+                          Use as a writing rule
                         </button>
                       )}
                     </div>
                   ))
                 ) : (
                   <p className="small muted">
-                    Saved observations will appear here.
+                    Saved findings from your posts will appear here.
                   </p>
                 )}
                 <div className="note">
-                  An observation is a proposal until you accept it. It cannot
-                  silently become a permanent writing rule.
+                  Findings become writing rules only after you accept them.
                 </div>
               </div>
             </div>
@@ -4019,7 +4008,7 @@ export function ActivityPage() {
     <>
       <Header
         title="Activity"
-        description="Append-only records of approvals, publication attempts and administrative changes."
+        description="A permanent record of approvals, publishing attempts and workspace changes."
       />
       <div className="toolbar">
         <div className="search-input">
@@ -4028,7 +4017,7 @@ export function ActivityPage() {
             aria-label="Search activity"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter actions or resources…"
+            placeholder="Search actions or items…"
           />
         </div>
         <span className="tiny muted">Latest {data?.length || 0} events</span>
@@ -4071,7 +4060,7 @@ export function ActivityPage() {
       </div>
       {event && (
         <Modal
-          title="Audit event"
+          title="Activity details"
           onClose={() => setEvent(null)}
           footer={
             <>
@@ -4083,7 +4072,7 @@ export function ActivityPage() {
                     inspectJob(event.resource_id);
                   }}
                 >
-                  Open publication timeline
+                  View publishing history
                 </button>
               )}
               <button className="btn primary" onClick={() => setEvent(null)}>
@@ -4109,7 +4098,7 @@ export function ActivityPage() {
 }
 export function SettingsPage() {
   const { data, error } = useLoad("settings"),
-    { request } = useApp(),
+    { request, session } = useApp(),
     a = useAction();
   const [timezone, setTimezone] = useState("America/New_York"),
     [token, setToken] = useState(false),
@@ -4117,6 +4106,21 @@ export function SettingsPage() {
     [currentPassword, setCurrentPassword] = useState(""),
     [newPassword, setNewPassword] = useState("");
   const [lastSettings, setLastSettings] = useState<any>(null);
+  const [recoveryEnabled, setRecoveryEnabled] = useState(false),
+    [recoveryPassword, setRecoveryPassword] = useState(""),
+    [recoveryCode, setRecoveryCode] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/config", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((r) => {
+        if (!cancelled) setRecoveryEnabled(!!r.data?.recoveryCodesEnabled);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   if (data && data !== lastSettings) {
     setLastSettings(data);
     setTimezone(data.workspace.timezone);
@@ -4146,7 +4150,7 @@ export function SettingsPage() {
                     name: data.workspace.name,
                     timezone,
                   }),
-                "Timezone saved. Refresh to apply.",
+                "Timezone saved. Refresh the page to apply it.",
               )
               .catch(() => {})
           }
@@ -4211,6 +4215,98 @@ export function SettingsPage() {
         </div>
         {worker?.last_error && <ErrorNote message={worker.last_error} />}
       </section>
+      {recoveryEnabled && (
+        <section className="settings-section stack">
+          <h2>Account recovery</h2>
+          <p className="small muted">
+            Save a recovery code in a password manager. Creating a new code
+            replaces your previous code.
+          </p>
+          {recoveryCode ? (
+            <div className="stack">
+              <pre
+                className="log auth-recovery-code"
+                aria-label="Your recovery code"
+              >
+                {recoveryCode}
+              </pre>
+              <p className="small muted">
+                This code appears only once. It can reset your password once.
+              </p>
+              <button
+                className="btn"
+                onClick={() =>
+                  navigator.clipboard
+                    .writeText(recoveryCode)
+                    .catch(() => a.setError("Select and copy the code above."))
+                }
+              >
+                Copy recovery code
+              </button>
+              <button
+                className="btn primary"
+                onClick={() => setRecoveryCode("")}
+              >
+                I saved my recovery code
+              </button>
+            </div>
+          ) : (
+            <form
+              className="stack"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void a
+                  .run(async () => {
+                    const response = await fetch(
+                      "/api/auth/recovery-code/generate",
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "x-mediaflock-csrf": session.csrf,
+                          "x-workspace-id": session.workspaceId,
+                        },
+                        body: JSON.stringify({
+                          currentPassword: recoveryPassword,
+                        }),
+                      },
+                    );
+                    const result = await response.json();
+                    if (!response.ok)
+                      throw new Error(
+                        result.error?.message ||
+                          "Could not create your recovery code.",
+                      );
+                    return result.recoveryCode;
+                  })
+                  .then((code) => {
+                    setRecoveryCode(code);
+                    setRecoveryPassword("");
+                  })
+                  .catch(() => {});
+              }}
+            >
+              <Field label="Current password">
+                <input
+                  aria-label="Password for recovery code"
+                  type="password"
+                  autoComplete="current-password"
+                  value={recoveryPassword}
+                  onChange={(e) => setRecoveryPassword(e.target.value)}
+                  required
+                />
+              </Field>
+              <button
+                className="btn"
+                type="submit"
+                disabled={a.busy || !recoveryPassword}
+              >
+                Create recovery code
+              </button>
+            </form>
+          )}
+        </section>
+      )}
       <details className="settings-section">
         <summary>API access</summary>
         <div className="stack section-space">
@@ -4284,7 +4380,9 @@ export function SettingsPage() {
           }
         >
           <div className="stack">
-            <p className="small muted">Shown once. Keep it private.</p>
+            <p className="small muted">
+              Copy this token now. It appears only once. Keep it private.
+            </p>
             <pre className="log" aria-label="New API token secret">
               {secret.secret}
             </pre>
@@ -4317,7 +4415,7 @@ function TokenModal({
     );
   return (
     <Modal
-      title="Create workspace API token"
+      title="Create an API token"
       onClose={onClose}
       footer={
         <>
@@ -4354,7 +4452,7 @@ function TokenModal({
             placeholder="Local drafting agent"
           />
         </Field>
-        <Field label="Scopes">
+        <Field label="Permissions">
           <div className="choices">
             {["read", "draft", "request_approval", "schedule", "analytics"].map(
               (scope) => (
@@ -4385,8 +4483,8 @@ function TokenModal({
           />
         </Field>
         <div className="note">
-          Scheduling scope can schedule only an already approved revision. Human
-          approval is never exposed to agent credentials.
+          Tokens with scheduling permission can schedule only posts you have
+          already approved. API tokens cannot approve posts.
         </div>
       </div>
     </Modal>
@@ -4475,7 +4573,7 @@ export function IntegrationModal({
         {a.error && <ErrorNote message={a.error} />}{" "}
         {mode === "demo" ? (
           <p className="small muted">
-            External keys are disabled in this test environment.
+            API keys cannot be saved in this test environment.
           </p>
         ) : (
           <>
@@ -4514,7 +4612,7 @@ export function IntegrationModal({
                 <div className="fields-2">
                   <Field label="Daily token limit">
                     <input
-                      aria-label="Daily AI token ceiling"
+                      aria-label="Daily AI token limit"
                       type="number"
                       min={1000}
                       max={1000000}
@@ -4534,7 +4632,7 @@ export function IntegrationModal({
                   </Field>
                 </div>
                 <p className="tiny muted">
-                  Draft generation uses your API account. Manual editing works
+                  AI drafts use your API account. You can edit drafts manually
                   without AI.
                 </p>
               </>
@@ -4546,7 +4644,7 @@ export function IntegrationModal({
                     checked={allowPublishing}
                     onChange={(e) => setAllowPublishing(e.target.checked)}
                   />
-                  Allow publication of posts I explicitly approve
+                  Allow publishing only posts I approve
                 </label>
                 <Field label="Provider project">
                   <select
@@ -4568,7 +4666,7 @@ export function IntegrationModal({
                       className="btn compact"
                       onClick={() => navigator.clipboard.writeText(callback)}
                     >
-                      Copy callback URL
+                      Copy redirect URL
                     </button>
                     <label className="check-row">
                       <input
@@ -4614,7 +4712,7 @@ export function ServiceModal({ onClose }: { onClose: () => void }) {
     [notes, setNotes] = useState("");
   return (
     <Modal
-      title="Register a workspace service"
+      title="Add a service link"
       onClose={onClose}
       footer={
         <>
@@ -4628,11 +4726,11 @@ export function ServiceModal({ onClose }: { onClose: () => void }) {
               a.submit(
                 () => request("services", "POST", { name, type, url, notes }),
                 onClose,
-                "Service reference saved.",
+                "Service link saved.",
               )
             }
           >
-            Save service
+            Save link
           </button>
         </>
       }
@@ -4663,7 +4761,7 @@ export function ServiceModal({ onClose }: { onClose: () => void }) {
             ))}
           </select>
         </Field>
-        <Field label="Console / reference URL">
+        <Field label="Service URL">
           <input
             aria-label="Service URL"
             type="url"
@@ -4680,8 +4778,8 @@ export function ServiceModal({ onClose }: { onClose: () => void }) {
           />
         </Field>
         <div className="note">
-          This saves a reference. It does not connect, authorize or fetch the
-          service. Store API keys in the integration vault.
+          This saves a service link without connecting to it or retrieving data.
+          Save API keys in connection settings.
         </div>
       </div>
     </Modal>

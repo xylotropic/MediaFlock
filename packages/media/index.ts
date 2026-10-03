@@ -1,76 +1,21 @@
-import { existsSync } from "node:fs";
-import { spawn } from "node:child_process";
 import { mkdtemp, writeFile, readFile, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { randomUUID, createHash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { mediaRecipe, type MediaRecipe } from "../schemas";
 import { scoped, one, audit, type Context, workerContext } from "../db";
 import { authorize, storageAdmin } from "../domain/auth";
 import { requireCondition, DomainError } from "../domain/errors";
+import {
+  uploadVerifiedOriginal,
+  checkMediaQuota,
+  checkGlobalMediaCapacity,
+  boundedMediaStorage,
+} from "./uploads";
 export const checksum = (bytes: Buffer) =>
   createHash("sha256").update(bytes).digest("hex");
-export async function runProcess(
-  bin: string,
-  args: string[],
-  timeout = 120000,
-  maxOutput = 2 * 1024 * 1024,
-) {
-  return new Promise<string>((resolve, reject) => {
-    const executable =
-      bin === "ffmpeg"
-        ? process.env.FFMPEG_BIN ||
-          (existsSync("/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg")
-            ? "/opt/homebrew/opt/ffmpeg-full/bin/ffmpeg"
-            : "ffmpeg")
-        : bin === "ffprobe"
-          ? process.env.FFPROBE_BIN ||
-            (existsSync("/opt/homebrew/opt/ffmpeg-full/bin/ffprobe")
-              ? "/opt/homebrew/opt/ffmpeg-full/bin/ffprobe"
-              : "ffprobe")
-          : bin;
-    const p = spawn(executable, args, {
-      shell: false,
-      stdio: ["ignore", "pipe", "pipe"],
-      env: {
-        PATH: process.env.PATH || "/usr/bin:/bin",
-        NODE_ENV: process.env.NODE_ENV || "development",
-      },
-    });
-    let output = "",
-      err = "",
-      size = 0;
-    const timer = setTimeout(() => {
-      p.kill("SIGKILL");
-      reject(new Error("Media process exceeded runtime limit."));
-    }, timeout);
-    p.stdout.on("data", (chunk) => {
-      size += chunk.length;
-      if (size > maxOutput) {
-        p.kill("SIGKILL");
-        reject(new Error("Media output exceeded limit."));
-      } else output += chunk;
-    });
-    p.stderr.on("data", (chunk) => {
-      if (err.length < maxOutput) err += chunk;
-    });
-    p.on("error", (e) => {
-      clearTimeout(timer);
-      reject(e);
-    });
-    p.on("close", (code) => {
-      clearTimeout(timer);
-      if (code === 0) {
-        resolve(output);
-      } else
-        reject(
-          new Error(
-            `Media processing failed (exit ${code}): ${err.slice(-600)}`,
-          ),
-        );
-    });
-  });
-}
+export { runMediaProcess as runProcess } from "./parser";
+import { runMediaProcess as runProcess } from "./parser";
 export function identifyMime(bytes: Buffer) {
   if (
     bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
@@ -83,7 +28,12 @@ export function identifyMime(bytes: Buffer) {
     bytes.subarray(8, 12).toString() === "WEBP"
   )
     return "image/webp";
-  if (bytes.subarray(4, 8).toString() === "ftyp") return "video/mp4";
+  if (bytes.subarray(4, 8).toString() === "ftyp") {
+    const brand = bytes.subarray(8, 12).toString();
+    if (brand === "qt  ") return "video/quicktime";
+    if (/^(isom|iso[2-9]|mp4[12]|avc1|av01|M4V |MSNV|dash)$/.test(brand))
+      return "video/mp4";
+  }
   throw new DomainError(
     "invalid_media",
     "Upload a PNG, JPEG, WebP or MP4/QuickTime file.",
@@ -117,6 +67,18 @@ export async function probeBytes(bytes: Buffer) {
         20000,
       ),
     );
+    const container = String(raw.format?.format_name || "");
+    requireCondition(
+      mimeType === "image/png"
+        ? ["png_pipe", "apng"].includes(container)
+        : mimeType === "image/jpeg"
+          ? container === "jpeg_pipe"
+          : mimeType === "image/webp"
+            ? container === "webp_pipe"
+            : container.split(",").includes("mov"),
+      "mime_mismatch",
+      "The file contents do not match the media type.",
+    );
     const video = raw.streams?.find((x: any) => x.codec_type === "video");
     requireCondition(video, "invalid_media", "No valid picture stream found.");
     requireCondition(
@@ -149,54 +111,7 @@ export async function uploadAsset(
   tags: string[] = [],
   notes = "",
 ) {
-  authorize(ctx, "draft");
-  requireCondition(
-    filename.length > 0 && filename.length <= 255,
-    "invalid_filename",
-    "Choose a valid filename.",
-  );
-  const metadata = await probeBytes(bytes);
-  const safeName =
-    filename
-      .replace(/[^a-zA-Z0-9._-]/g, "_")
-      .replace(/^\.+/, "")
-      .slice(0, 120) || "media";
-  const id = randomUUID(),
-    path = `${ctx.workspaceId}/originals/${id}/${safeName}`;
-  const { error } = await storageAdmin()
-    .storage.from("mediaflock")
-    .upload(path, bytes, { contentType: metadata.mimeType, upsert: false });
-  requireCondition(
-    !error,
-    "storage_failed",
-    "Private storage upload failed. Check local Supabase Storage.",
-    503,
-  );
-  return scoped(ctx, async (tx) => {
-    const row = await one(
-      tx,
-      "insert into assets(id,workspace_id,filename,storage_path,mime_type,bytes,checksum,width,height,duration,tags,notes,provenance) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'uploaded') returning *",
-      [
-        id,
-        ctx.workspaceId,
-        safeName,
-        path,
-        metadata.mimeType,
-        metadata.bytes,
-        metadata.checksum,
-        metadata.width,
-        metadata.height,
-        metadata.duration,
-        tags,
-        notes,
-      ],
-    );
-    await audit(tx, ctx, "asset.uploaded", "asset", id, {
-      checksum: metadata.checksum,
-      bytes: metadata.bytes,
-    });
-    return row;
-  });
+  return uploadVerifiedOriginal(ctx, filename, bytes, tags, notes);
 }
 export async function listAssets(ctx: Context) {
   authorize(ctx, "read");
@@ -256,6 +171,7 @@ export async function requestDerivative(
   authorize(ctx, "draft");
   const recipe = mediaRecipe.parse(input);
   return scoped(ctx, async (tx) => {
+    await checkMediaQuota(tx, ctx);
     const asset = await one(
       tx,
       "select * from assets where id=$1 and workspace_id=$2",
@@ -402,9 +318,24 @@ export async function processDerivative(job: Record<string, any>) {
       "Source preservation check failed.",
     );
     const path = `${ctx.workspaceId}/derivatives/${job.id}/${job.lease_token}/result.${recipe.output}`;
-    const { error } = await storageAdmin()
-      .storage.from("mediaflock")
-      .upload(path, result, { contentType: meta.mimeType, upsert: false });
+    await scoped(ctx, async (tx) => {
+      await checkGlobalMediaCapacity(tx);
+      const lease = await one(
+        tx,
+        "update asset_derivatives set lease_expires_at=now()+interval '5 minutes' where id=$1 and workspace_id=$2 and status='processing' and lease_token=$3 returning id",
+        [job.id, ctx.workspaceId, job.lease_token],
+      );
+      requireCondition(
+        lease,
+        "media_lease_lost",
+        "Media processing was recovered by another worker.",
+        409,
+      );
+    });
+    const { error } = await boundedMediaStorage().upload(path, result, {
+      contentType: meta.mimeType,
+      upsert: false,
+    });
     requireCondition(!error, "storage_failed", "Derivative storage failed.");
     await scoped(ctx, async (tx) => {
       await tx.query(

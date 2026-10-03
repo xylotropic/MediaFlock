@@ -12,7 +12,7 @@ const instrument = localFont({
 export const metadata: Metadata = {
   title: "MediaFlock",
   description:
-    "Create, approve, distribute and learn from account-specific content.",
+    "Make your content, schedule your posts, and see what worked.",
 };
 export default function RootLayout({
   children,

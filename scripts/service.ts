@@ -69,6 +69,7 @@ if (action === "install") {
     "config",
     "vendor",
     "docs",
+    "tools",
     "node_modules",
     "package.json",
     "pnpm-lock.yaml",

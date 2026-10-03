@@ -11,6 +11,8 @@ import { getConfig } from "./config";
 import { requireCondition } from "./errors";
 import { db, scoped, audit, one, type Context } from "../db";
 import { tokenInput } from "../schemas";
+import { ensureRegisteredWorkspace } from "./registration";
+import { validateHumanSession, verifiedSessionId } from "./session-security";
 export const hash = (value: string) =>
   createHash("sha256").update(value).digest("hex");
 export function canonical(value: unknown): string {
@@ -33,10 +35,26 @@ export function storageAdmin() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
-export async function authClient() {
+export async function authClient(options: { timeoutMs?: number } = {}) {
   const c = getConfig(),
     jar = await cookies();
   return createServerClient(c.supabaseUrl, c.anonKey, {
+    ...(options.timeoutMs
+      ? {
+          global: {
+            fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+              fetch(input, {
+                ...init,
+                signal: init?.signal
+                  ? AbortSignal.any([
+                      init.signal,
+                      AbortSignal.timeout(options.timeoutMs!),
+                    ])
+                  : AbortSignal.timeout(options.timeoutMs!),
+              }),
+          },
+        }
+      : {}),
     cookieOptions: {
       httpOnly: true,
       sameSite: "lax",
@@ -136,13 +154,27 @@ export async function requestContext(req: Request): Promise<Context> {
     "Sign in to MediaFlock.",
     401,
   );
+  const currentSession = await auth.auth.getSession();
+  requireCondition(
+    !currentSession.error,
+    "authentication_required",
+    "Sign in again to continue.",
+    401,
+  );
+  const authSessionId = verifiedSessionId(
+    currentSession.data.session?.access_token,
+    user.id,
+  );
+  await validateHumanSession(db(), user.id, authSessionId);
   const memberships = await db().query(
     "select m.workspace_id,m.role,w.mode from memberships m join workspaces w on w.id=m.workspace_id where user_id=$1 and w.mode=$2 order by w.created_at",
     [user.id, getConfig().mode],
   );
-  const member = memberships.rows.find(
+  let member = memberships.rows.find(
     (x) => !workspaceId || x.workspace_id === workspaceId,
   );
+  if (!member && !workspaceId && memberships.rows.length === 0)
+    member = await ensureRegisteredWorkspace(user);
   requireCondition(
     member,
     "workspace_denied",
@@ -172,6 +204,7 @@ export async function requestContext(req: Request): Promise<Context> {
     userId: user.id,
     role: member.role,
     kind: "human",
+    authSessionId,
     scopes: ["read", "draft", "request_approval", "schedule", "analytics"],
   };
 }

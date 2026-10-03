@@ -2,7 +2,7 @@
   "status": "passed",
   "browser": "Google Chrome",
   "origin": "http://127.0.0.1:3211",
-  "label": "Chrome journey 2026-10-02T23:48:24.305Z",
+  "label": "Chrome journey 2026-10-03T04:00:51.354Z",
   "steps": [
     "Real local Supabase sign-in",
     "Upload validated original into private local Storage",
@@ -25,7 +25,7 @@
     "artifacts/screenshots/desktop-publication-receipt.png",
     "artifacts/screenshots/desktop-collapsed-sidebar.png",
     "artifacts/screenshots/desktop-overview.png",
-    "artifacts/screenshots/desktop-content-studio.png",
+    "artifacts/screenshots/desktop-content.png",
     "artifacts/screenshots/desktop-library.png",
     "artifacts/screenshots/desktop-approvals.png",
     "artifacts/screenshots/desktop-calendar.png",
@@ -34,7 +34,7 @@
     "artifacts/screenshots/desktop-connections.png",
     "artifacts/screenshots/desktop-settings.png",
     "artifacts/screenshots/mobile-overview.png",
-    "artifacts/screenshots/mobile-content-studio.png",
+    "artifacts/screenshots/mobile-content.png",
     "artifacts/screenshots/mobile-library.png",
     "artifacts/screenshots/mobile-approvals.png",
     "artifacts/screenshots/mobile-calendar.png",
@@ -45,5 +45,5 @@
   ],
   "consoleErrors": [],
   "responseErrors": [],
-  "verifiedAt": "2026-10-02T23:48:45.280Z"
+  "verifiedAt": "2026-10-03T04:01:11.165Z"
 }

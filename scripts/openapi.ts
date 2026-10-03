@@ -10,6 +10,7 @@ import {
 } from "../packages/schemas";
 import { capabilityReview } from "../packages/domain/accounts";
 import { integrationInput } from "../packages/domain/integrations";
+import { uploadInput } from "../packages/media/uploads";
 const paths: Record<string, any> = {};
 const reference = (name: string) => ({ $ref: "#/components/schemas/" + name });
 function op(
@@ -182,6 +183,55 @@ op(
 );
 op("/assets", "get", "List private originals and derivatives", "read");
 op("/assets/{id}/file", "get", "Read authorized private media bytes", "read");
+paths["/assets/{id}/file"].get.parameters.push({
+  name: "derivative",
+  in: "query",
+  schema: { type: "boolean", default: false },
+});
+paths["/assets/{id}/file"].get.responses["307"] = {
+  description:
+    "Authorized redirect to a private Storage URL valid for 60 seconds. The Storage endpoint supports byte ranges.",
+  headers: { Location: { schema: { type: "string", format: "uri" } } },
+};
+delete paths["/assets/{id}/file"].get.responses["200"];
+op(
+  "/asset-uploads",
+  "post",
+  "Reserve a private original upload and obtain a scoped signed URL",
+  "draft",
+  "AssetUpload",
+);
+paths["/asset-uploads"].post.description +=
+  ". Reuse requestId for an identical retry. PUT original bytes to the returned signedUrl with the declared Content-Type and x-upsert: false; the grant targets staging only and lasts two hours. A ready retry returns the existing asset. At most 50 MiB per original, 1 GiB per workspace including retained staging, originals, reservations and derivatives, 20 uploads or derivatives in 24 hours, and three pending media jobs. A pending original reserves 100 MiB for staging and final copies; ready copies both count at their verified size. All workspaces share a locked total storage ceiling configured by MEDIAFLOCK_STORAGE_TOTAL_BYTES (1 GiB by default in live mode). Shared capacity exhaustion returns storage_capacity.";
+paths["/asset-uploads"].post.responses["410"] = {
+  description:
+    "The existing upload grant expired; start with a fresh requestId",
+};
+op(
+  "/asset-uploads/{id}/complete",
+  "post",
+  "Queue worker validation of a received original",
+  "draft",
+);
+paths["/asset-uploads/{id}/complete"].post.description +=
+  ". Idempotent. The received size must match the reservation. No asset is usable until worker MIME, ffprobe metadata and SHA-256 verification succeed. The worker stores byte-identical content at a final original path outside the browser grant and confirms the stored final hash. A matching final left by an interrupted worker is reused without overwrite.";
+paths["/asset-uploads/{id}/complete"].post.responses["404"] = {
+  description: "Upload is absent or belongs to another workspace",
+};
+paths["/asset-uploads/{id}/complete"].post.responses["410"] = {
+  description: "The upload completion deadline expired",
+};
+op(
+  "/asset-uploads/{id}",
+  "get",
+  "Inspect validation status and the verified asset when ready",
+  "read",
+);
+paths["/asset-uploads/{id}"].get.description +=
+  ". Status is awaiting_upload, queued, validating, ready, failed or expired. Poll with a delay of at least 1.5 seconds. The asset is present only when ready.";
+paths["/asset-uploads/{id}"].get.responses["404"] = {
+  description: "Upload is absent or belongs to another workspace",
+};
 op(
   "/assets/{id}/process",
   "post",
@@ -261,7 +311,9 @@ op(
   true,
 );
 paths["/assets"].post = {
-  summary: "Validate and store original media privately",
+  summary: "Validate and store original media privately on the local service",
+  description:
+    "Local multipart compatibility endpoint. Cloud callers use /asset-uploads so original bytes bypass the web function body limit. The same media quota applies.",
   security: [{ bearerAuth: [] }, { cookieAuth: [] }],
   requestBody: {
     required: true,
@@ -281,6 +333,8 @@ paths["/assets"].post = {
   },
   responses: {
     "201": { description: "Original stored with metadata and checksum" },
+    "400": { description: "Invalid media or direct_upload_required on Vercel" },
+    "429": { description: "Workspace media quota reached" },
   },
 };
 op(
@@ -347,6 +401,7 @@ const spec = {
         Experiment: experimentInput,
         TokenRequest: tokenInput,
         MediaRecipe: mediaRecipe,
+        AssetUpload: uploadInput,
         Decision: z.object({ reason: z.string().max(2000).optional() }),
       }).map(([name, schema]) => [
         name,

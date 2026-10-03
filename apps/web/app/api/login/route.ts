@@ -8,13 +8,21 @@ import {
   DomainError,
   publicError,
 } from "../../../../../packages/domain/errors";
+import {
+  clientAddressHash,
+  registrationBody,
+} from "../../../../../packages/domain/registration";
 export async function POST(req: Request) {
   try {
     sameOrigin(req);
-    await limit("login:" + req.headers.get("x-forwarded-for"), 20);
-    const data = z
-      .object({ email: z.email(), password: z.string().min(1).max(200) })
-      .parse(await req.json());
+    await limit("login:" + clientAddressHash(req), 20);
+    const data = await registrationBody(
+      req,
+      z.object({
+        email: z.email().max(254),
+        password: z.string().min(1).max(200),
+      }),
+    );
     const { error } = await (await authClient()).auth.signInWithPassword(data);
     if (error)
       throw new DomainError(
@@ -29,7 +37,10 @@ export async function POST(req: Request) {
   } catch (e) {
     return Response.json(
       { error: publicError(e) },
-      { status: e instanceof DomainError ? e.status : 400 },
+      {
+        status: e instanceof DomainError ? e.status : 400,
+        headers: { "Cache-Control": "no-store" },
+      },
     );
   }
 }

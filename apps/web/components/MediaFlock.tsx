@@ -23,7 +23,7 @@ import {
 import { motion, LayoutGroup } from "motion/react";
 import { useReducedMotion } from "./effects";
 import { AppContext } from "./context";
-import { Brand, Modal, ErrorNote } from "./ui";
+import { Brand, Modal } from "./ui";
 import {
   Overview,
   Library,
@@ -37,9 +37,10 @@ import {
   JobInspector,
 } from "./screens";
 import { ConnectionsPage } from "./connections";
+import { AuthPanel } from "./auth-screen";
 const navigation = [
   ["overview", "Overview", LayoutDashboard],
-  ["studio", "Content Studio", SquarePen],
+  ["studio", "Content", SquarePen],
   ["library", "Library", FolderOpen],
   ["approvals", "Approvals", CheckCheck],
   ["calendar", "Calendar", CalendarDays],
@@ -177,9 +178,12 @@ export function MediaFlock() {
   if (loading) return <div className="loading">Loading MediaFlock…</div>;
   if (!session)
     return (
-      <Login
+      <AuthPanel
         ready={config?.ready}
         mode={config?.mode}
+        signupEnabled={config?.selfSignupEnabled}
+        emailEnabled={config?.authEmailEnabled}
+        recoveryEnabled={config?.recoveryCodesEnabled}
         onSuccess={loadSession}
       />
     );
@@ -417,113 +421,5 @@ export function MediaFlock() {
       )}
       {jobId && <JobInspector id={jobId} onClose={() => setJobId(null)} />}
     </AppContext.Provider>
-  );
-}
-function Login({
-  ready,
-  mode,
-  onSuccess,
-}: {
-  ready: boolean;
-  mode: string;
-  onSuccess: () => Promise<void>;
-}) {
-  const [email, setEmail] = useState(
-      mode === "demo" ? "floyd@mediaflock.local" : "",
-    ),
-    [password, setPassword] = useState(
-      mode === "demo" ? "MediaFlock-demo-2026!" : "",
-    ),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
-  return (
-    <div className="login-page">
-      <section className="login-brand">
-        <Brand />
-        <div>
-          <div className="eyebrow">An accountable content cycle</div>
-          <h1>
-            Make it.
-            <br />
-            Approve it.
-            <br />
-            Learn from it.
-          </h1>
-          <p>
-            From source material to account-specific content, traceable delivery
-            and evidence for the next experiment.
-          </p>
-        </div>
-      </section>
-      <div className="login-form-wrap">
-        <form
-          className="login-form"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setBusy(true);
-            setError("");
-            try {
-              const r = await fetch("/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-              });
-              const data = await r.json();
-              if (!r.ok) throw new Error(data.error.message);
-              await onSuccess();
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Sign-in failed.");
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          <div className="eyebrow" style={{ marginBottom: 15 }}>
-            Workspace access
-          </div>
-          <h2>Sign in to MediaFlock</h2>
-          <p>Use your workspace credentials.</p>
-          {error && <ErrorNote message={error} />}
-          <div className="stack">
-            <div className="field">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="username"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button
-              className="btn primary"
-              disabled={busy || !ready}
-              type="submit"
-            >
-              {busy ? "Signing in…" : "Enter workspace"}
-              <ArrowRight size={14} />
-            </button>
-          </div>
-          {!ready && (
-            <div className="note error-note section-space">
-              MediaFlock is unavailable. Check the service connection and
-              refresh.
-            </div>
-          )}
-        </form>
-      </div>
-    </div>
   );
 }

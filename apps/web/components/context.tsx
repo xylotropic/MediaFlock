@@ -35,7 +35,7 @@ export function useLoad(path: string) {
       setData(d);
       setError("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load records.");
+      setError(e instanceof Error ? e.message : "Could not load these items.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export function useAction() {
       return value;
     } catch (e) {
       const text =
-        e instanceof Error ? e.message : "Action could not be completed.";
+        e instanceof Error ? e.message : "Could not complete this action.";
       setError(text);
       throw e;
     } finally {

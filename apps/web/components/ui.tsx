@@ -59,7 +59,7 @@ export function Platform({
 }
 export function Status({ value }: { value: string }) {
   const labels: Record<string, string> = {
-    needs_reconciliation: "Needs reconciliation",
+    needs_reconciliation: "Checking delivery",
     permission_missing: "Permission missing",
     submitting: "Submitting",
     processing: "Processing",

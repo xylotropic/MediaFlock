@@ -6,6 +6,8 @@ import { safeError } from "../../packages/domain/errors";
 import { drainPublications } from "./publishing";
 import { collectDueMetrics } from "./analytics";
 import { processMediaQueue } from "./media";
+import { prepareMediaWorker } from "./parser-startup";
+import { cleanupMediaParserContainers } from "../../packages/media/parser";
 let stopping = false;
 process.on("SIGTERM", () => {
   stopping = true;
@@ -17,6 +19,7 @@ const id = "worker-" + randomUUID().slice(0, 8),
   once = process.argv.includes("--once");
 async function main() {
   getConfig();
+  await prepareMediaWorker();
   await db().query(
     "insert into worker_health(id,started_at,heartbeat_at,status) values($1,now(),now(),'running')",
     [id],
@@ -25,8 +28,28 @@ async function main() {
     JSON.stringify({ event: "worker.started", id, mode: getConfig().mode }),
   );
   let cycles = 0;
+  let lastParserCleanupAt = Date.now();
+  let heartbeatPending = false;
+  const heartbeat = setInterval(() => {
+    if (heartbeatPending) return;
+    heartbeatPending = true;
+    void db()
+      .query("update worker_health set heartbeat_at=now() where id=$1", [id])
+      .catch(() => console.error("Worker heartbeat could not be saved."))
+      .finally(() => {
+        heartbeatPending = false;
+      });
+  }, 10000);
+  heartbeat.unref();
   while (!stopping) {
     try {
+      if (
+        process.env.MEDIAFLOCK_MEDIA_ISOLATION === "docker" &&
+        Date.now() - lastParserCleanupAt >= 60000
+      ) {
+        lastParserCleanupAt = Date.now();
+        await cleanupMediaParserContainers();
+      }
       const publications = await drainPublications(20),
         media = await processMediaQueue(3),
         metrics = await collectDueMetrics();
@@ -60,6 +83,7 @@ async function main() {
       ),
     );
   }
+  clearInterval(heartbeat);
   await db().query(
     "update worker_health set status='stopped',heartbeat_at=now() where id=$1",
     [id],

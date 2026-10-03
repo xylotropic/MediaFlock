@@ -38,6 +38,11 @@ export async function GET(req: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
+    if (e instanceof DomainError && e.code === "authentication_required")
+      return Response.json(
+        { data: null },
+        { headers: { "Cache-Control": "no-store" } },
+      );
     return Response.json(
       { error: publicError(e) },
       { status: e instanceof DomainError ? e.status : 500 },

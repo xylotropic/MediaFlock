@@ -54,7 +54,7 @@ export function ConnectionsPage() {
                   ? "Connected"
                   : entry?.has_key
                     ? entry.enabled
-                      ? "Ready to check"
+                      ? "Not checked"
                       : "Disabled"
                     : "Not connected"}
               </span>
@@ -130,8 +130,7 @@ export function ConnectionsPage() {
           </button>
         ) : (
           <p className="work-empty">
-            Connect Post for Me above, then authorize the accounts you want to
-            use.
+            Connect Post for Me above, then connect your social accounts.
           </p>
         )}
       </section>

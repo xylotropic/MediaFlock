@@ -19,3 +19,4 @@ artifacts/deployment/
 artifacts/parent-preservation.json
 docs/original-brief.txt
 docs/postforme-openapi.json
+.vercel/

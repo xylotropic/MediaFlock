@@ -26,8 +26,10 @@ import * as experiments from "../experiments";
 import * as ai from "../ai";
 import * as integrations from "./integrations";
 import * as media from "../media";
+import * as uploads from "../media/uploads";
 import * as analytics from "../analytics";
 import { id, platform } from "../schemas";
+import { verifiedSessionId } from "./session-security";
 export async function dispatch(
   ctx: Context,
   method: string,
@@ -46,12 +48,12 @@ export async function dispatch(
         newPassword: z.string().min(12).max(200),
       })
       .parse(body);
-    const auth = await authClient();
+    const auth = await authClient({ timeoutMs: 10000 });
     const {
       data: { user },
     } = await auth.auth.getUser();
     requireCondition(
-      user?.email,
+      user?.email && user.id === ctx.userId,
       "authentication_required",
       "Sign in again before changing your password.",
       401,
@@ -61,21 +63,54 @@ export async function dispatch(
       password: input.currentPassword,
     });
     requireCondition(
-      !verified.error,
+      !verified.error && verified.data.session,
       "password_rejected",
       "Current password was not accepted.",
       400,
     );
-    const changed = await auth.auth.updateUser({ password: input.newPassword });
+    const freshUser = await auth.auth.getUser();
     requireCondition(
-      !changed.error,
-      "password_change_failed",
-      "Password could not be changed.",
-      400,
+      !freshUser.error && freshUser.data.user?.id === ctx.userId,
+      "authentication_required",
+      "Sign in again before changing your password.",
+      401,
     );
-    await scoped(ctx, (tx) =>
-      audit(tx, ctx, "account.password_changed", "membership", ctx.userId),
-    );
+    const freshCtx = {
+      ...ctx,
+      authSessionId: verifiedSessionId(
+        verified.data.session!.access_token,
+        freshUser.data.user.id,
+      ),
+    };
+    await scoped(freshCtx, async (tx) => {
+      const changed = await auth.auth.updateUser({
+        password: input.newPassword,
+      });
+      if (
+        changed.error &&
+        (!changed.error.status ||
+          changed.error.status >= 500 ||
+          changed.error.status === 408)
+      )
+        throw new DomainError(
+          "password_change_uncertain",
+          "The password change could not be confirmed. Try signing in with your new password before trying again.",
+          503,
+        );
+      requireCondition(
+        !changed.error,
+        "password_change_failed",
+        "Password could not be changed.",
+        400,
+      );
+      await audit(
+        tx,
+        freshCtx,
+        "account.password_changed",
+        "membership",
+        ctx.userId,
+      );
+    });
     return { changed: true };
   }
   if (root === "connections" && resource === "health" && method === "GET") {
@@ -236,6 +271,14 @@ export async function dispatch(
         return asset;
       });
     }
+  }
+  if (root === "asset-uploads") {
+    if (!resource && method === "POST")
+      return uploads.beginAssetUpload(ctx, body);
+    if (resource && !action && method === "GET")
+      return uploads.getAssetUpload(ctx, resource);
+    if (resource && action === "complete" && method === "POST")
+      return uploads.completeAssetUpload(ctx, resource);
   }
   if (root === "analytics" && method === "GET")
     return analytics.getAnalytics(
@@ -423,42 +466,28 @@ export async function handleApi(req: Request, path: string[]) {
       path[2] === "file" &&
       req.method === "GET"
     ) {
-      const item = await media.assetBytes(
+      const signedUrl = await uploads.assetDownloadUrl(
         ctx,
         id.parse(path[1]),
         url.searchParams.get("derivative") === "true",
       );
-      let bytes = item.bytes,
-        status = 200;
-      const headers: Record<string, string> = {
-        "Content-Type": item.mimeType,
-        "Cache-Control": "private, no-store",
-        "X-Content-Type-Options": "nosniff",
-        "Accept-Ranges": "bytes",
-        "Content-Disposition": `inline; filename="${item.filename.replace(/[^a-zA-Z0-9._-]/g, "_")}"`,
-      };
-      const range = req.headers.get("range");
-      if (range) {
-        const match = /^bytes=(\d+)-(\d*)$/.exec(range);
-        requireCondition(match, "invalid_range", "Invalid media range.", 416);
-        const start = Number(match[1]),
-          end = match[2]
-            ? Math.min(Number(match[2]), bytes.length - 1)
-            : bytes.length - 1;
-        requireCondition(
-          start <= end && start < bytes.length,
-          "invalid_range",
-          "Requested range is outside this asset.",
-          416,
-        );
-        headers["Content-Range"] = `bytes ${start}-${end}/${bytes.length}`;
-        bytes = bytes.subarray(start, end + 1);
-        status = 206;
-      }
-      headers["Content-Length"] = String(bytes.length);
-      return new Response(new Uint8Array(bytes), { status, headers });
+      return new Response(null, {
+        status: 307,
+        headers: {
+          Location: signedUrl,
+          "Cache-Control": "private, no-store",
+          "Referrer-Policy": "no-referrer",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
     }
     if (path[0] === "assets" && !path[1] && req.method === "POST") {
+      requireCondition(
+        !process.env.VERCEL,
+        "direct_upload_required",
+        "Upload directly to private storage through /api/v1/asset-uploads on this server.",
+        400,
+      );
       requireCondition(
         Number(req.headers.get("content-length") || 0) <= 54 * 1024 * 1024,
         "file_size",

@@ -1804,7 +1804,8 @@
         }
       },
       "post": {
-        "summary": "Validate and store original media privately",
+        "summary": "Validate and store original media privately on the local service",
+        "description": "Local multipart compatibility endpoint. Cloud callers use /asset-uploads so original bytes bypass the web function body limit. The same media quota applies.",
         "security": [
           {
             "bearerAuth": []
@@ -1841,6 +1842,12 @@
         "responses": {
           "201": {
             "description": "Original stored with metadata and checksum"
+          },
+          "400": {
+            "description": "Invalid media or direct_upload_required on Vercel"
+          },
+          "429": {
+            "description": "Workspace media quota reached"
           }
         }
       }
@@ -1850,6 +1857,133 @@
         "operationId": "get__assets__id__file",
         "summary": "Read authorized private media bytes",
         "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "derivative",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Authorized redirect to a private Storage URL valid for 60 seconds. The Storage endpoint supports byte ranges.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/asset-uploads": {
+      "post": {
+        "operationId": "post__asset_uploads",
+        "summary": "Reserve a private original upload and obtain a scoped signed URL",
+        "description": "Required token scope: draft. Reuse requestId for an identical retry. PUT original bytes to the returned signedUrl with the declared Content-Type and x-upsert: false; the grant targets staging only and lasts two hours. A ready retry returns the existing asset. At most 50 MiB per original, 1 GiB per workspace including retained staging, originals, reservations and derivatives, 20 uploads or derivatives in 24 hours, and three pending media jobs. A pending original reserves 100 MiB for staging and final copies; ready copies both count at their verified size. All workspaces share a locked total storage ceiling configured by MEDIAFLOCK_STORAGE_TOTAL_BYTES (1 GiB by default in live mode). Shared capacity exhaustion returns storage_capacity.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "410": {
+            "description": "The existing upload grant expired; start with a fresh requestId"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetUpload"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/asset-uploads/{id}/complete": {
+      "post": {
+        "operationId": "post__asset_uploads__id__complete",
+        "summary": "Queue worker validation of a received original",
+        "description": "Required token scope: draft. Idempotent. The received size must match the reservation. No asset is usable until worker MIME, ffprobe metadata and SHA-256 verification succeed. The worker stores byte-identical content at a final original path outside the browser grant and confirms the stored final hash. A matching final left by an interrupted worker is reused without overwrite.",
         "security": [
           {
             "bearerAuth": []
@@ -1891,6 +2025,74 @@
           },
           "403": {
             "description": "Scope, workspace, role or CSRF denied"
+          },
+          "404": {
+            "description": "Upload is absent or belongs to another workspace"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "410": {
+            "description": "The upload completion deadline expired"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/asset-uploads/{id}": {
+      "get": {
+        "operationId": "get__asset_uploads__id_",
+        "summary": "Inspect validation status and the verified asset when ready",
+        "description": "Required token scope: read. Status is awaiting_upload, queued, validating, ready, failed or expired. Poll with a delay of at least 1.5 seconds. The asset is present only when ready.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "404": {
+            "description": "Upload is absent or belongs to another workspace"
           },
           "409": {
             "description": "Revision/state conflict or uncertainty"
@@ -3549,6 +3751,65 @@
           "cropX",
           "cropY",
           "output"
+        ],
+        "additionalProperties": false
+      },
+      "AssetUpload": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 52428800
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "image/png",
+              "image/jpeg",
+              "image/webp",
+              "video/mp4",
+              "video/quicktime"
+            ]
+          },
+          "checksum": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "tags": {
+            "default": [],
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 50
+            }
+          },
+          "notes": {
+            "default": "",
+            "type": "string",
+            "maxLength": 5000
+          }
+        },
+        "required": [
+          "requestId",
+          "filename",
+          "bytes",
+          "mimeType",
+          "checksum",
+          "tags",
+          "notes"
         ],
         "additionalProperties": false
       },

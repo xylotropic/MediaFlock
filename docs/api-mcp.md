@@ -25,3 +25,19 @@ Keep this configuration private. Start from the repository directory so package/
 `pnpm api:generate` regenerates the included OpenAPI schema. Cookie-authenticated writes require matching Origin and `x-mediaflock-csrf`; bearer tokens still require workspace/scopes and cannot impersonate a human. Credentials, permission reviews and connection configuration are owner-only.
 
 Official reference: [Codex MCP configuration](https://developers.openai.com/codex/mcp/).
+
+## Upload originals
+
+Use the HTTP API to upload media. The MCP tools do not upload local files. Original bytes go directly to the private Storage bucket, and the worker validates them before the API exposes a usable asset.
+
+1. Calculate the file's SHA-256 checksum and send `POST /api/v1/asset-uploads` with `requestId` (a fresh UUID), `filename`, `bytes`, `mimeType`, `checksum`, and optional `tags` and `notes`. Use a token with `draft` scope. Supported types are PNG, JPEG, WebP, MP4 and QuickTime, with a maximum size of 50 MiB.
+2. Send the unchanged file bytes with `PUT` to the returned `signedUrl`. Set `Content-Type` to the declared media type and `x-upsert: false`. This grant targets one server-generated staging path, lasts two hours and cannot overwrite an existing object. It never grants access to the final original path. Treat the URL as a temporary secret.
+3. Send `POST /api/v1/asset-uploads/{id}/complete` with `{}` to queue validation. The worker reads at most 50 MiB, checks MIME, picture metadata and SHA-256, and stores those identical bytes at a separate immutable original path. It reads that final object back and confirms its hash before registering an asset. A recovered worker reuses a matching final object and never overwrites it. Poll `GET /api/v1/asset-uploads/{id}` with `read` scope and at least 1.5 seconds between requests. Status progresses from `awaiting_upload` through `queued` and `validating` to `ready`; failures return `failed` and an explanation. Only `ready` includes the verified `asset`, whose ID can enter a content package or approval.
+
+Reuse the same `requestId` and metadata when retrying the same upload. Preparation returns the same pending link or ready asset. Completion also accepts retries, including a lost response from the original PUT. A failed or expired upload needs a fresh request ID. The Mac worker must be running for validation and derivatives.
+
+The workspace allowance is 1 GiB across originals, retained staging files, derivatives and reserved uploads, with 20 new uploads or derivatives per 24 hours and three pending media jobs. Each unverified upload reserves 100 MiB for a possible 50 MiB staging file and 50 MiB immutable original. Once ready, both copies count at their verified byte size. Failed files remain quarantined and count toward the allowance. Abandoned grants expire; the worker releases capacity only for objects confirmed absent after the grant and its in-flight buffer have ended. Stored originals are retained unchanged.
+
+A global allowance covers all workspaces and also counts unregistered objects left by interrupted work. New reservations take a global database lock before checking capacity, so parallel workspaces cannot bypass this allowance. `MEDIAFLOCK_STORAGE_TOTAL_BYTES` sets the deployment's total byte ceiling. Live mode defaults to 1 GiB; isolated demo mode defaults to 20 GiB for test fixtures. Configure a lower live ceiling when the storage plan needs spare capacity. Only server roles can read the aggregate. API calls return `storage_capacity` when the shared allowance is full.
+
+`GET /api/v1/assets/{id}/file` authorizes workspace access and redirects to a private URL valid for 60 seconds. Follow the redirect to receive bytes; Storage supports `Range` requests. Use `?derivative=true` with a ready derivative ID. Local installations also retain the multipart `POST /api/v1/assets` endpoint. Cloud callers use the direct upload workflow to avoid web function size limits.

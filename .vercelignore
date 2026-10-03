@@ -1,0 +1,15 @@
+.git
+.vercel
+.env
+.env.*
+node_modules
+apps/web/.next
+apps/web/.next-demo
+artifacts
+tests
+test-results
+playwright-report
+supabase/.temp
+supabase/.branches
+docs/original-brief.txt
+docs/postforme-openapi.json

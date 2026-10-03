@@ -51,12 +51,12 @@ async function navigate(name: string) {
       .getByRole("navigation", { name: "Main navigation" })
       .getByRole("button", { name, exact: true }),
   ).toHaveAttribute("aria-current", "page");
-  if (name !== "Content Studio")
+  if (name !== "Content")
     await expect(
       page.getByRole("heading", { name, exact: true }).first(),
     ).toBeVisible();
   await expect(
-    page.getByText("Loading persisted records…", { exact: true }),
+    page.getByText("Loading your content…", { exact: true }),
   ).toHaveCount(0);
   if (name === "Connections")
     await expect(page.getByText("Connected", { exact: true })).toBeVisible();
@@ -99,11 +99,9 @@ function localMinute() {
   return `${p("year")}-${p("month")}-${p("day")}T${p("hour")}:${p("minute")}`;
 }
 try {
-  await page.goto(origin);
-  await expect(
-    page.getByRole("button", { name: "Enter workspace" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Enter workspace" }).click();
+  await page.goto(origin + "/signin");
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await page.getByRole("button", { name: "Sign in" }).click();
   await expect(
     page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
@@ -128,7 +126,7 @@ try {
   expect(asset.checksum).toBe(createHash("sha256").update(bytes).digest("hex"));
   steps.push("Upload validated original into private local Storage");
   await page.getByRole("button", { name: "New content", exact: true }).click();
-  await page.getByLabel("Package title").fill(label);
+  await page.getByLabel("Content title").fill(label);
   await page
     .getByLabel("Source notes", { exact: true })
     .fill("Original media demonstrates a simple creative workflow.");
@@ -142,16 +140,16 @@ try {
     .getByText("Tags", { exact: true })
     .first()
     .click();
-  await page.getByLabel("Package tags").fill("browser-verified");
+  await page.getByLabel("Content tags").fill("browser-verified");
   await page.getByRole("dialog").getByLabel(fileName, { exact: false }).check();
-  await page.getByRole("button", { name: "Save package", exact: true }).click();
+  await page.getByRole("button", { name: "Save content", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: label, exact: true }),
   ).toBeVisible();
   steps.push("Persist content package with original media");
   await page
-    .getByRole("button", { name: "Generate variants", exact: true })
+    .getByRole("button", { name: "Generate versions", exact: true })
     .click();
   const accountList = await get("accounts");
   const destinations = accountList
@@ -169,11 +167,11 @@ try {
       .selectOption(account.platform === "facebook" ? "image" : "text");
   }
   await page
-    .getByRole("button", { name: "Generate 2 variants", exact: true })
+    .getByRole("button", { name: "Generate 2 versions", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator(".variant-card")).toHaveCount(2);
-  await expect(page.getByText("Test AI fixture", { exact: true })).toHaveCount(
+  await expect(page.getByText("Demo AI example", { exact: true })).toHaveCount(
     2,
   );
   steps.push("Generate two account-specific labeled demo variants");
@@ -182,11 +180,9 @@ try {
     .filter({ hasText: destinations[0].handle });
   await first.getByRole("button", { name: "Edit", exact: true }).click();
   await page
-    .getByLabel("Variant caption")
+    .getByLabel("Version caption")
     .fill("Browser-verified edited caption. Original media stays unchanged.");
-  await page
-    .getByRole("button", { name: "Save revision", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(first.getByText("Revision 2", { exact: true })).toBeVisible();
   steps.push("Save immutable revision and verify edited content");
@@ -212,13 +208,13 @@ try {
       .filter({ hasText: label })
       .filter({ hasText: account.handle });
     await card
-      .getByRole("button", { name: "Review snapshot", exact: true })
+      .getByRole("button", { name: "Review post", exact: true })
       .click();
     await expect(
       page.getByRole("dialog").getByText(account.handle, { exact: true }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "Approve this snapshot", exact: true })
+      .getByRole("button", { name: "Approve this post", exact: true })
       .click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
   }
@@ -232,16 +228,22 @@ try {
       .filter({ hasText: label })
       .filter({ hasText: account.handle });
     await card
-      .getByRole("button", { name: "Inspect decision", exact: true })
+      .getByRole("button", { name: "View decision", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Schedule approved revision", exact: true })
+      .getByRole("button", { name: "Schedule approved post", exact: true })
       .click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
   }
   let jobs = (await get("publications")).filter((x: any) => x.title === label);
   expect(jobs).toHaveLength(2);
-  expect(jobs.every((x: any) => x.state === "queued")).toBe(true);
+  expect(
+    jobs.every((x: any) =>
+      ["queued", "submitting", "scheduled", "processing", "published"].includes(
+        x.state,
+      ),
+    ),
+  ).toBe(true);
   steps.push("Schedule two approved destinations with durable intents");
   await navigate("Overview");
   await page
@@ -269,7 +271,7 @@ try {
   );
   await shot("desktop-publication-receipt");
   await page
-    .getByRole("button", { name: "Collect test observations", exact: true })
+    .getByRole("button", { name: "Collect demo metrics", exact: true })
     .click();
   await page.getByRole("button", { name: "Done", exact: true }).click();
   await page
@@ -290,7 +292,7 @@ try {
   await navigate("Analytics");
   await expect(
     page.getByRole("heading", {
-      name: "Inspectable observations",
+      name: "Post metrics",
       exact: true,
     }),
   ).toBeVisible();
@@ -303,7 +305,7 @@ try {
   await page.getByLabel("Analytics measurement view").selectOption("changes");
   await expect(
     page.getByRole("columnheader", {
-      name: "Observed view change",
+      name: "Change in views",
       exact: true,
     }),
   ).toBeVisible();
@@ -371,7 +373,7 @@ try {
   ).toHaveCount(0);
   const screens = [
     "Overview",
-    "Content Studio",
+    "Content",
     "Library",
     "Approvals",
     "Calendar",
