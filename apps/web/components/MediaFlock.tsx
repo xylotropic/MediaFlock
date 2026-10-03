@@ -330,7 +330,7 @@ export function MediaFlock() {
               </button>
             </div>
           </header>
-          <main className="main">
+          <main className="main" key={screen}>
             {screen === "overview" ? (
               <Overview />
             ) : screen === "studio" ? (

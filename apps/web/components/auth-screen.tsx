@@ -180,7 +180,7 @@ export function AuthPanel({
             Go viral.
           </h1>
           <p>
-            MediaFlock is a next generation Social Media Harness built for
+            MediaFlock is a next generation social media harness built for
             brands trying to scale.
           </p>
         </div>

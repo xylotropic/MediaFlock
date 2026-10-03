@@ -1,0 +1,73 @@
+.page {
+  min-height: 100svh;
+  background: #fff;
+  color: var(--ink, #171717);
+}
+.header {
+  max-width: 1320px;
+  min-height: 102px;
+  margin: auto;
+  padding: 25px 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.header :global(.brand) {
+  font-size: 25px;
+}
+.header > a:last-child {
+  font-size: 12px;
+  color: var(--muted, #737373);
+}
+.content {
+  max-width: 760px;
+  padding: 48px 24px 88px;
+  margin: auto;
+}
+.date {
+  margin-bottom: 18px;
+  color: var(--muted, #737373);
+  font-size: 12px;
+}
+.content h1 {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-size: clamp(44px, 6vw, 68px);
+  font-weight: 400;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+}
+.introduction {
+  margin-top: 24px;
+  color: #626262;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.content section {
+  margin-top: 36px;
+}
+.content h2 {
+  font-size: 17px;
+  font-weight: 550;
+  line-height: 1.4;
+}
+.content section p {
+  margin-top: 12px;
+  color: #626262;
+  font-size: 14px;
+  line-height: 1.85;
+}
+@media (max-width: 600px) {
+  .header {
+    min-height: 86px;
+    padding: 22px 24px;
+    gap: 16px;
+  }
+  .header :global(.brand) {
+    font-size: 23px;
+  }
+  .content {
+    padding-top: 32px;
+    padding-bottom: 64px;
+  }
+}

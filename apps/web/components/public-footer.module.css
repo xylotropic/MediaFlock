@@ -1,0 +1,30 @@
+.footer {
+  max-width: 1232px;
+  margin: 0 auto;
+  padding: 26px 18px 32px;
+  border-top: 1px solid var(--line, #e7e7e7);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  color: var(--muted, #737373);
+  font-size: 12px;
+}
+
+.footer a:hover {
+  color: var(--ink, #171717);
+}
+
+@media (max-width: 1320px) {
+  .footer {
+    margin-inline: 44px;
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer {
+    margin-inline: 24px;
+    padding-block: 22px 28px;
+  }
+}

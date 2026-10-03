@@ -184,10 +184,7 @@
   padding: 0 0 88px;
 }
 .platformHeading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 20px;
+  text-align: center;
   padding: 0 18px;
 }
 .platformHeading h2 {
@@ -200,26 +197,6 @@
   font-size: 13px;
   color: var(--landing-muted);
   margin-top: 5px;
-}
-.motionButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  color: #777;
-  background: #fff;
-  border: 1px solid var(--landing-border);
-  border-radius: 5px;
-  font-size: 11px;
-  white-space: nowrap;
-}
-.motionButton:hover:not(:disabled) {
-  color: #171717;
-  border-color: #bcbcbc;
-}
-.motionButton:disabled {
-  opacity: 0.65;
-  cursor: default;
 }
 .marquee {
   overflow: hidden;
@@ -938,19 +915,12 @@
   }
   .platformHeading {
     padding: 0 24px;
-    align-items: start;
-    gap: 10px;
   }
   .platformHeading h2 {
     font-size: 15px;
   }
   .platformHeading p {
     font-size: 11px;
-    max-width: 205px;
-  }
-  .motionButton {
-    font-size: 10px;
-    margin-top: 1px;
   }
   .marquee {
     margin-top: 23px;

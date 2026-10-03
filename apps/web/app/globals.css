@@ -1451,16 +1451,30 @@ tbody tr:hover {
   transform: translateY(1px);
 }
 .main {
-  animation: content-enter 0.23s ease-out;
+  animation: content-enter 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes content-enter {
+.page-transition {
+  min-height: 100svh;
+  animation: page-enter 0.2s ease-out;
+}
+@keyframes page-enter {
   from {
-    opacity: 0.5;
+    opacity: 0.75;
     transform: translateY(3px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
+  }
+}
+@keyframes content-enter {
+  from {
+    opacity: 0.65;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 .sidebar {
@@ -1572,6 +1586,7 @@ tbody tr:hover {
 }
 @media (prefers-reduced-motion: reduce) {
   .main,
+  .page-transition,
   .modal {
     animation: none;
   }

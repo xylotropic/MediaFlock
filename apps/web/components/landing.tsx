@@ -1,19 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowRight, ArrowUpRight, Pause, Play } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { ThinkingOrb } from "thinking-orbs";
 import { Brand } from "./ui";
 import { useReducedMotion } from "./effects";
 import { LandingFeatures } from "./landing-features";
 import { PlatformMark, socialPlatforms } from "./platform-mark";
+import { PublicFooter } from "./public-footer";
 import styles from "./landing.module.css";
 
 export function Landing() {
   const reduced = useReducedMotion();
-  const [paused, setPaused] = useState(false);
-  const motionPaused = reduced || paused;
+  const motionPaused = reduced;
 
   return (
     <div
@@ -47,7 +46,7 @@ export function Landing() {
               <span>Go viral.</span>
             </h1>
             <p>
-              MediaFlock is a next generation Social Media Harness built for
+              MediaFlock is a next generation social media harness built for
               brands trying to scale.
             </p>
             <div className={styles.actions}>
@@ -94,23 +93,6 @@ export function Landing() {
               <h2 id="platforms-title">Your audience. Your platforms.</h2>
               <p>A single workspace for the accounts you use.</p>
             </div>
-            <button
-              type="button"
-              className={styles.motionButton}
-              onClick={() => setPaused(!paused)}
-              disabled={reduced}
-              aria-pressed={motionPaused}
-              aria-label={
-                reduced
-                  ? "Animations are off because of your motion preference"
-                  : paused
-                    ? "Play page animations"
-                    : "Pause page animations"
-              }
-            >
-              {motionPaused ? <Play size={12} /> : <Pause size={12} />}
-              {reduced ? "Motion off" : paused ? "Play motion" : "Pause motion"}
-            </button>
           </div>
           <div className={styles.marquee}>
             <div className={styles.marqueeTrack}>
@@ -134,6 +116,7 @@ export function Landing() {
 
         <LandingFeatures paused={motionPaused} />
       </main>
+      <PublicFooter />
     </div>
   );
 }
