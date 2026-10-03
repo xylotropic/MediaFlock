@@ -12,6 +12,8 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
+import { NextRequest } from "next/server";
+import { localRequestAuthority } from "../packages/domain/local-request";
 import type { Context } from "../packages/db";
 import { ChatGPTRuntime } from "../packages/chatgpt/runtime";
 import {
@@ -179,6 +181,34 @@ function addProfile(vault: MemoryVault) {
 }
 
 describe("Local ChatGPT subscription security", () => {
+  it("accepts Next's normalized loopback URL only with the exact direct HTTP authority", () => {
+    const origin = "http://127.0.0.1:3210";
+    const next = new NextRequest(origin + "/api/v1/subscriptions/chatgpt", {
+      headers: { host: "127.0.0.1:3210" },
+    });
+    expect(new URL(next.url).hostname).toBe("localhost");
+    expect(localRequestAuthority(next, origin)).toBe(true);
+    for (const [url, host, configured] of [
+      [next.url, "evil.example:3210", origin],
+      [next.url, "localhost:3210", origin],
+      [next.url, "127.0.0.1:3211", origin],
+      ["http://evil.example:3210/api", "127.0.0.1:3210", origin],
+      [next.url, "127.0.0.1:3210", "https://mediaflock.example"],
+      ["http://localhost:3211/api", "127.0.0.1:3210", origin],
+    ])
+      expect(
+        localRequestAuthority(
+          new Request(url, {
+            headers: {
+              host,
+              "x-forwarded-host": "127.0.0.1:3210",
+              "x-forwarded-proto": "http",
+            },
+          }),
+          configured,
+        ),
+      ).toBe(false);
+  });
   it("validates signatures, issuer, audience, nonce and authorized party", async () => {
     const pair = await generateKeyPair("RS256");
     const issue = (claims: any = {}, issuer = oauthIssuer) =>

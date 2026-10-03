@@ -13,6 +13,7 @@ import { db, scoped, audit, one, type Context } from "../db";
 import { tokenInput } from "../schemas";
 import { ensureRegisteredWorkspace } from "./registration";
 import { validateHumanSession, verifiedSessionId } from "./session-security";
+import { localRequestAuthority } from "./local-request";
 export const hash = (value: string) =>
   createHash("sha256").update(value).digest("hex");
 export function canonical(value: unknown): string {
@@ -205,7 +206,7 @@ export async function requestContext(req: Request): Promise<Context> {
     role: member.role,
     kind: "human",
     authSessionId,
-    localInteractive: new URL(req.url).origin === getConfig().origin,
+    localInteractive: localRequestAuthority(req, getConfig().origin),
     scopes: ["read", "draft", "request_approval", "schedule", "analytics"],
   };
 }
