@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
+import { RouteTransition } from "../components/navigation-transition";
 
 export default function Template({ children }: { children: ReactNode }) {
-  return <div className="page-transition">{children}</div>;
+  return <RouteTransition>{children}</RouteTransition>;
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import Link from "next/link";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -38,6 +39,7 @@ import {
 } from "./screens";
 import { ConnectionsPage } from "./connections";
 import { AuthPanel } from "./auth-screen";
+import { useNavigationTransition } from "./navigation-transition";
 const navigation = [
   ["overview", "Overview", LayoutDashboard],
   ["studio", "Content", SquarePen],
@@ -80,6 +82,7 @@ export function MediaFlock() {
     } catch {}
   }
   const reducedMotion = useReducedMotion();
+  const beginNavigation = useNavigationTransition();
   const [config, setConfig] = useState<any>(null),
     [session, setSession] = useState<any>(null),
     [loading, setLoading] = useState(true),
@@ -161,6 +164,7 @@ export function MediaFlock() {
     [session],
   );
   const navigate = (next: string) => {
+    if (next !== screen) beginNavigation();
     setScreen(next);
     setMenu(false);
     const url = new URL(window.location.href);
@@ -222,22 +226,28 @@ export function MediaFlock() {
             "sidebar " + (menu ? "open " : "") + (collapsed ? "collapsed" : "")
           }
         >
-          <div className="sidebar-brand">
-            <Brand />
+          <div className="sidebar-header">
+            <Link
+              href="/"
+              className="sidebar-brand"
+              aria-label="MediaFlock home"
+            >
+              <Brand />
+            </Link>
+            <button
+              className="sidebar-collapse"
+              onClick={toggleSidebar}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!collapsed}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {collapsed ? (
+                <PanelLeftOpen size={15} />
+              ) : (
+                <PanelLeftClose size={15} />
+              )}
+            </button>
           </div>
-          <button
-            className="sidebar-collapse"
-            onClick={toggleSidebar}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-expanded={!collapsed}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {collapsed ? (
-              <PanelLeftOpen size={15} />
-            ) : (
-              <PanelLeftClose size={15} />
-            )}
-          </button>
           <nav className="nav" aria-label="Main navigation">
             <LayoutGroup id="mediaflock-sidebar">
               {navigation.map(([id, label, Icon]) => (
