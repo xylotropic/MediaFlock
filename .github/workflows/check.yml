@@ -1,0 +1,29 @@
+name: Verify isolated application
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - run: npm install --global pnpm@10.33.0
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm setup:demo
+      - run: MEDIAFLOCK_ENV_FILE=.env.demo pnpm build
+      - run: pnpm lint && pnpm typecheck && pnpm test
+      - run: pnpm exec playwright install chrome
+      - run: |
+          pnpm dev:demo > /tmp/mediaflock-web.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3211/api/health > /dev/null; then break; fi
+            sleep 2
+          done
+          pnpm test:browser

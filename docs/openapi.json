@@ -1,0 +1,3568 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MediaFlock API",
+    "version": "0.1.0",
+    "description": "Workspace-scoped distribution harness. Cookie-authenticated writes require same-origin and x-mediaflock-csrf. Machine credentials cannot approve. Simulated records cannot enter live publishing."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:3210/api/v1",
+      "description": "Private personal service"
+    }
+  ],
+  "paths": {
+    "/accounts": {
+      "get": {
+        "operationId": "get__accounts",
+        "summary": "List accounts and capabilities",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/accounts/{id}": {
+      "get": {
+        "operationId": "get__accounts__id_",
+        "summary": "Read account-specific rules and observations",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch__accounts__id_",
+        "summary": "Update account context",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/accounts/{id}/rules": {
+      "post": {
+        "operationId": "post__accounts__id__rules",
+        "summary": "Add an explicit account rule",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/packages": {
+      "get": {
+        "operationId": "get__packages",
+        "summary": "List persisted source packages",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post__packages",
+        "summary": "Create a source package",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentPackage"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/packages/{id}": {
+      "get": {
+        "operationId": "get__packages__id_",
+        "summary": "Get source and account variants",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch__packages__id_",
+        "summary": "Create a new source revision",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContentPackage"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/packages/{id}/generate": {
+      "post": {
+        "operationId": "post__packages__id__generate",
+        "summary": "Generate labeled account-specific drafts",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/variants": {
+      "post": {
+        "operationId": "post__variants",
+        "summary": "Create account-specific immutable revision",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Variant"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/variants/{id}": {
+      "patch": {
+        "operationId": "patch__variants__id_",
+        "summary": "Edit with expected current revision ID",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/variants/{id}/revisions": {
+      "get": {
+        "operationId": "get__variants__id__revisions",
+        "summary": "Read immutable revision history",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/variants/{id}/request-approval": {
+      "post": {
+        "operationId": "post__variants__id__request_approval",
+        "summary": "Request exact-revision human review",
+        "description": "Required token scope: request_approval",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/approvals": {
+      "get": {
+        "operationId": "get__approvals",
+        "summary": "List exact approval snapshots",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/approvals/{id}/approve": {
+      "post": {
+        "operationId": "post__approvals__id__approve",
+        "summary": "Human approval approve",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/approvals/{id}/reject": {
+      "post": {
+        "operationId": "post__approvals__id__reject",
+        "summary": "Human approval reject",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/approvals/{id}/revoke": {
+      "post": {
+        "operationId": "post__approvals__id__revoke",
+        "summary": "Human approval revoke",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/approvals/{id}/schedule": {
+      "post": {
+        "operationId": "post__approvals__id__schedule",
+        "summary": "Queue an approved delivery intent",
+        "description": "Required token scope: schedule",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/publications": {
+      "get": {
+        "operationId": "get__publications",
+        "summary": "List destination-specific jobs",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/publications/{id}": {
+      "get": {
+        "operationId": "get__publications__id_",
+        "summary": "Inspect job, attempts and receipt",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/publications/{id}/cancel": {
+      "post": {
+        "operationId": "post__publications__id__cancel",
+        "summary": "Request cancel; confirmation is separate",
+        "description": "Required token scope: schedule",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/publications/{id}/reschedule": {
+      "post": {
+        "operationId": "post__publications__id__reschedule",
+        "summary": "Request reschedule; confirmation is separate",
+        "description": "Required token scope: schedule",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/publications/{id}/reconcile": {
+      "post": {
+        "operationId": "post__publications__id__reconcile",
+        "summary": "Request reconcile; confirmation is separate",
+        "description": "Required token scope: schedule",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/publications/{id}/metrics": {
+      "get": {
+        "operationId": "get__publications__id__metrics",
+        "summary": "Read permitted metric snapshots",
+        "description": "Required token scope: analytics",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/analytics": {
+      "get": {
+        "operationId": "get__analytics",
+        "summary": "Inspect observations and availability",
+        "description": "Required token scope: analytics",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/experiments": {
+      "get": {
+        "operationId": "get__experiments",
+        "summary": "List experiments",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post__experiments",
+        "summary": "Create experiment",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Experiment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/experiments/{id}": {
+      "get": {
+        "operationId": "get__experiments__id_",
+        "summary": "Read comparison and supporting evidence",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/experiments/{id}/assign": {
+      "post": {
+        "operationId": "post__experiments__id__assign",
+        "summary": "Assign exact variant revision",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/experiments/{id}/evaluate": {
+      "post": {
+        "operationId": "post__experiments__id__evaluate",
+        "summary": "Persist qualified recommendation and evidence",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/assets": {
+      "get": {
+        "operationId": "get__assets",
+        "summary": "List private originals and derivatives",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      },
+      "post": {
+        "summary": "Validate and store original media privately",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "tags": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Original stored with metadata and checksum"
+          }
+        }
+      }
+    },
+    "/assets/{id}/file": {
+      "get": {
+        "operationId": "get__assets__id__file",
+        "summary": "Read authorized private media bytes",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/assets/{id}/process": {
+      "post": {
+        "operationId": "post__assets__id__process",
+        "summary": "Queue local media processing",
+        "description": "Required token scope: draft",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaRecipe"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tokens": {
+      "post": {
+        "operationId": "post__tokens",
+        "summary": "Create hashed workspace token",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tokens/{id}": {
+      "delete": {
+        "operationId": "delete__tokens__id_",
+        "summary": "Revoke a workspace token",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/connections": {
+      "post": {
+        "operationId": "post__connections",
+        "summary": "Begin session-bound authorization",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/connections/callback": {
+      "get": {
+        "operationId": "get__connections_callback",
+        "summary": "Confirm bound account authorization",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/activity": {
+      "get": {
+        "operationId": "get__activity",
+        "summary": "Read append-only audit events",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/settings": {
+      "get": {
+        "operationId": "get__settings",
+        "summary": "Read workspace readiness",
+        "description": "Required token scope: read",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch__settings",
+        "summary": "Update workspace settings",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/integrations": {
+      "get": {
+        "operationId": "get__integrations",
+        "summary": "List masked credential and service status",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/integrations/openai": {
+      "put": {
+        "operationId": "put__integrations_openai",
+        "summary": "Save or rotate encrypted service configuration",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Integration"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete__integrations_openai",
+        "summary": "Revoke stored service secret",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/integrations/openai/check": {
+      "post": {
+        "operationId": "post__integrations_openai_check",
+        "summary": "Inspect configuration readiness; no external call",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/integrations/postforme": {
+      "put": {
+        "operationId": "put__integrations_postforme",
+        "summary": "Save or rotate encrypted service configuration",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Integration"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete__integrations_postforme",
+        "summary": "Revoke stored service secret",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/integrations/postforme/check": {
+      "post": {
+        "operationId": "post__integrations_postforme_check",
+        "summary": "Inspect configuration readiness; no external call",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/services": {
+      "post": {
+        "operationId": "post__services",
+        "summary": "Register a service reference",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/services/{id}": {
+      "delete": {
+        "operationId": "delete__services__id_",
+        "summary": "Remove a service reference",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/accounts/{id}/permissions": {
+      "post": {
+        "operationId": "post__accounts__id__permissions",
+        "summary": "Record generation-bound owner permission evidence",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapabilityReview"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/connections/health": {
+      "get": {
+        "operationId": "get__connections_health",
+        "summary": "Verify private backend availability",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/integrations/{service}/check": {
+      "post": {
+        "operationId": "post__integrations__service__check",
+        "summary": "Authenticated read-only service check",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "postforme",
+                "openai"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Hashed, scoped, expiring workspace API token."
+      },
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "Supabase SSR auth cookies",
+        "description": "Verified Supabase session; writes require CSRF token and same Origin."
+      }
+    },
+    "schemas": {
+      "CapabilityReview": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "connectionGeneration": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "capabilityGeneration": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "accountType": {
+            "type": "string",
+            "enum": [
+              "youtube_channel",
+              "facebook_page",
+              "instagram_professional",
+              "tiktok_creator",
+              "linkedin_person",
+              "linkedin_organization",
+              "x_account"
+            ]
+          },
+          "formats": {
+            "minItems": 1,
+            "maxItems": 6,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "video",
+                "short",
+                "reel",
+                "image",
+                "text",
+                "carousel"
+              ]
+            }
+          },
+          "publishingGranted": {
+            "type": "boolean",
+            "const": true
+          },
+          "feedsGranted": {
+            "default": null,
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "connectionGeneration",
+          "capabilityGeneration",
+          "accountType",
+          "formats",
+          "publishingGranted",
+          "feedsGranted",
+          "evidence"
+        ],
+        "additionalProperties": false
+      },
+      "Integration": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 1000
+          },
+          "enabled": {
+            "default": false,
+            "type": "boolean"
+          },
+          "config": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "dailyTokenCeiling": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 1000000
+              },
+              "maxOutputTokens": {
+                "type": "integer",
+                "minimum": 256,
+                "maximum": 4000
+              },
+              "credentialMode": {
+                "type": "string",
+                "enum": [
+                  "quickstart",
+                  "own"
+                ]
+              },
+              "connectionCallbackConfigured": {
+                "type": "boolean"
+              },
+              "publishingEnabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "enabled",
+          "config"
+        ],
+        "additionalProperties": false
+      },
+      "ContentPackage": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "sourceNotes": {
+            "default": "",
+            "type": "string",
+            "maxLength": 20000
+          },
+          "brief": {
+            "default": "",
+            "type": "string",
+            "maxLength": 10000
+          },
+          "tags": {
+            "default": [],
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 50
+            }
+          },
+          "assetIds": {
+            "default": [],
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "sourceNotes",
+          "brief",
+          "tags",
+          "assetIds"
+        ],
+        "additionalProperties": false
+      },
+      "Variant": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "packageId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "video",
+              "short",
+              "reel",
+              "image",
+              "text",
+              "carousel"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "properties": {
+              "hook": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "caption": {
+                "type": "string",
+                "maxLength": 10000
+              },
+              "title": {
+                "default": "",
+                "type": "string",
+                "maxLength": 120
+              },
+              "description": {
+                "default": "",
+                "type": "string",
+                "maxLength": 10000
+              },
+              "cta": {
+                "default": "",
+                "type": "string",
+                "maxLength": 500
+              },
+              "visibility": {
+                "default": "public",
+                "type": "string",
+                "enum": [
+                  "public",
+                  "private",
+                  "unlisted"
+                ]
+              },
+              "settings": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "media": {
+                "default": [],
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "assetId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "derivativeId": {
+                      "default": null,
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "assetId",
+                    "derivativeId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "utm": {
+                "default": "",
+                "type": "string",
+                "maxLength": 2000
+              }
+            },
+            "required": [
+              "hook",
+              "caption",
+              "title",
+              "description",
+              "cta",
+              "visibility",
+              "settings",
+              "media",
+              "utm"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "packageId",
+          "accountId",
+          "format",
+          "payload"
+        ],
+        "additionalProperties": false
+      },
+      "ApprovalRequest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "revisionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "variantId",
+          "revisionId",
+          "scheduledAt"
+        ],
+        "additionalProperties": false
+      },
+      "Experiment": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "hypothesis": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 2000
+          },
+          "changedVariable": {
+            "type": "string",
+            "enum": [
+              "hook",
+              "format",
+              "cta",
+              "publishing_window"
+            ]
+          },
+          "primaryMetric": {
+            "type": "string",
+            "enum": [
+              "views",
+              "likes",
+              "comments",
+              "shares",
+              "engagement_rate"
+            ]
+          },
+          "denominator": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "views",
+                  "impressions"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "horizonHours": {
+            "default": 24,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 720
+          },
+          "plannedSamples": {
+            "default": 3,
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 1000
+          },
+          "accounts": {
+            "minItems": 1,
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "accountId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "formats": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "video",
+                      "short",
+                      "reel",
+                      "image",
+                      "text",
+                      "carousel"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "accountId",
+                "formats"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "startAt": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "endAt": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "endCondition": {
+            "default": "Planned sample size and evaluation horizon reached",
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "name",
+          "hypothesis",
+          "changedVariable",
+          "primaryMetric",
+          "denominator",
+          "horizonHours",
+          "plannedSamples",
+          "accounts",
+          "startAt",
+          "endAt",
+          "endCondition"
+        ],
+        "additionalProperties": false
+      },
+      "TokenRequest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "scopes": {
+            "default": [
+              "read",
+              "draft",
+              "request_approval"
+            ],
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "read",
+                "draft",
+                "request_approval",
+                "schedule",
+                "analytics"
+              ]
+            }
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "name",
+          "scopes",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "MediaRecipe": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "trimStart": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3600
+          },
+          "trimEnd": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3600
+          },
+          "width": {
+            "default": 1080,
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 1920
+          },
+          "height": {
+            "default": 1920,
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 1920
+          },
+          "fit": {
+            "default": "letterbox",
+            "type": "string",
+            "enum": [
+              "letterbox",
+              "crop",
+              "stretch"
+            ]
+          },
+          "cropX": {
+            "default": 0.5,
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "cropY": {
+            "default": 0.5,
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "output": {
+            "default": "mp4",
+            "type": "string",
+            "enum": [
+              "mp4",
+              "png",
+              "jpeg"
+            ]
+          },
+          "thumbnailAt": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3600
+          },
+          "subtitles": {
+            "type": "string",
+            "maxLength": 50000
+          }
+        },
+        "required": [
+          "width",
+          "height",
+          "fit",
+          "cropX",
+          "cropY",
+          "output"
+        ],
+        "additionalProperties": false
+      },
+      "Decision": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

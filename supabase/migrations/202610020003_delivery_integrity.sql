@@ -1,0 +1,13 @@
+alter table approvals add unique(workspace_id,id,variant_id,account_id);
+alter table publication_targets add column variant_id uuid;
+update publication_targets t set variant_id=a.variant_id from approvals a where a.id=t.approval_id;
+alter table publication_targets alter column variant_id set not null;
+alter table publication_targets add foreign key(workspace_id,approval_id,variant_id,account_id) references approvals(workspace_id,id,variant_id,account_id);
+alter table publication_targets add unique(workspace_id,id,variant_id,account_id);
+alter table publish_jobs add column variant_id uuid;
+update publish_jobs j set variant_id=t.variant_id from publication_targets t where t.id=j.target_id;
+alter table publish_jobs alter column variant_id set not null;
+alter table publish_jobs add foreign key(workspace_id,target_id,variant_id,account_id) references publication_targets(workspace_id,id,variant_id,account_id);
+create unique index one_active_intent_per_variant_account on publish_jobs(workspace_id,variant_id,account_id) where state in ('queued','submitting','scheduled','processing','needs_reconciliation');
+create trigger immutable_metric before update or delete on metric_snapshots for each row execute function mf_immutable();
+create trigger immutable_event before update or delete on provider_events for each row execute function mf_immutable();

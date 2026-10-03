@@ -1,0 +1,1 @@
+-- Auth users and demo rows are seeded by pnpm seed through local-only administrative APIs.

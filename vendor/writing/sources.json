@@ -1,0 +1,20 @@
+[
+  {
+    "repository": "https://github.com/sergebulaev/instagram-skills",
+    "commit": "313ef290661e422d0fd6e7851dfeaff40fb86c8d",
+    "license": "MIT",
+    "use": "Adapted style and hook guidance; provider-specific publishing code is not included."
+  },
+  {
+    "repository": "https://github.com/sergebulaev/facebook-skills",
+    "commit": "0576522aee6a825c1ab0e04e2e4df180c4ea8285",
+    "license": "MIT",
+    "use": "Adapted style and hook guidance; provider-specific publishing code is not included."
+  },
+  {
+    "repository": "https://github.com/Hao0321/claude-skill-social-post",
+    "commit": "46392bd05e1b9b2fc28048358b2e6c799345fa99",
+    "license": "MIT",
+    "use": "Adapted style and hook guidance; provider-specific publishing code is not included."
+  }
+]

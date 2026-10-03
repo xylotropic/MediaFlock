@@ -1,0 +1,11 @@
+{
+  "provenance": "original_local_fixtures",
+  "image": {
+    "id": "0a80fb12-b2b5-405d-8975-95203edfba35",
+    "checksum": "c5422bf6ce6dae278649d21a53c24beab140a1e269ce22a0aa1350df689a2632"
+  },
+  "video": {
+    "id": "93a22e4e-3f64-49a9-985d-06424cc8fc61",
+    "checksum": "6a7b3082ad2f96d3c8da6a7bf507e25b67aa759edf758d1bc9536686241599be"
+  }
+}
