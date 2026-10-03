@@ -2,7 +2,7 @@
 
 The verified baseline uses cloud Supabase and two private macOS LaunchAgents. Its web app is at `http://127.0.0.1:3210` on the host Mac. The worker processes real workspace data. The isolated local test app uses port 3211 and a separate database.
 
-The Vercel instructions below prepare a public web app with the existing Mac worker. They do not record a completed public deployment. Check [the verification record](completion.md) for tested releases.
+The public web app is [mediaflock.vercel.app](https://mediaflock.vercel.app), deployed on October 3, 2026 with the existing Mac worker. The first deployment passed its live transport and responsive checks. Registration, email delivery, and recovery-code activation remain closed pending the owner’s selected account flow. Check [the verification record](completion.md) for tested releases.
 
 ## Environment and first owner
 

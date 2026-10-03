@@ -100,7 +100,7 @@ afterAll(async () => {
 
 function containers() {
   const result = spawnSync(
-    "/opt/homebrew/bin/docker",
+    dockerExecutable,
     [
       "--context",
       dockerContext,
@@ -109,8 +109,9 @@ function containers() {
       "--filter",
       "label=mediaflock.parser=true",
     ],
-    { encoding: "utf8" },
+    { encoding: "utf8", timeout: 5000 },
   );
+  expect(result.error).toBeUndefined();
   expect(result.status).toBe(0);
   return result.stdout.trim();
 }

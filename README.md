@@ -1,10 +1,10 @@
 # MediaFlock
 
-A personal publishing workspace with an API and MCP interface. Create drafts for each account, review them, schedule approved posts, and check delivery and performance.
+MediaFlock is a next generation Social Media Harness built for brands trying to scale. It includes an API and MCP interface. Create drafts for each account, review them, schedule approved posts, and check delivery and performance.
 
-The interface uses a monochrome palette, Instrument Serif headings, an animated sidebar, and the EvilCharts ECharts bar component. It has nine navigation items: Overview, Content Studio, Library, Approvals, Calendar, Analytics, Accounts, Connections, and Settings. Experiment tools remain available through the API and MCP. Calendar shows publication history.
+The interface uses a monochrome palette, Instrument Serif headings, an animated sidebar, and the EvilCharts ECharts bar component. It has nine navigation items: Overview, Content, Library, Approvals, Calendar, Analytics, Accounts, Connections, and Settings. Experiment tools remain available through the API and MCP. Calendar shows publication history.
 
-The public page is `/`. Sign in at `/signin` and open the workspace at `/app`. The `/signup` page creates a separate workspace when registration is enabled. Registration starts closed. Email confirmation and email password reset need configured delivery. An optional recovery-code flow is implemented separately; its public activation and the account admission method still await an owner decision.
+The public website is [mediaflock.vercel.app](https://mediaflock.vercel.app). The public page is `/`. Sign in at `/signin` and open the workspace at `/app`. The `/signup` page creates a separate workspace when registration is enabled. Registration starts closed. Email confirmation and email password reset need configured delivery. An optional recovery-code flow is implemented separately; its public activation and the account admission method still await an owner decision.
 
 ## Run the isolated local workflow
 
@@ -49,7 +49,7 @@ Vercel can host the public page, account pages, workspace, and API. The existing
 
 Browsers upload originals directly to private Supabase Storage with signed upload URLs. The worker checks their hashes and media details in a container before creating a separate immutable original. Authorized downloads use short signed URLs. Originals, staging, quarantine, and derivatives share a 1 GiB workspace allowance, 20 media requests in 24 hours, and three pending jobs. A separate global storage allowance defaults to 1 GiB in live mode and must fit the actual Supabase project capacity.
 
-Follow the [public deployment instructions](docs/deployment.md#vercel-web-and-api). They include build settings, verified database TLS, account admission, email delivery, worker updates, and production checks. These instructions do not claim a completed public deployment. See the [verification record](docs/completion.md) for tested results.
+Follow the [public deployment instructions](docs/deployment.md#vercel-web-and-api). They include build settings, verified database TLS, account admission, email delivery, worker updates, and production checks. The first public deployment passed 82 production checks on October 3, 2026, including a direct 5.8 MiB private upload, worker validation, download checksum, byte ranges, and cleanup. See the [verification record](docs/completion.md) for tested results and remaining account-admission prerequisites.
 
 ## Verify
 
@@ -61,7 +61,7 @@ pnpm build
 pnpm test:browser
 ```
 
-`pnpm test` uses `.env.demo` and refuses remote databases. Start `pnpm dev:demo` before the Chrome browser journey. Tests exercise local Auth, Postgres, private Storage, and FFmpeg. To require the container canaries, install the documented parser image and run `MEDIAFLOCK_MEDIA_ISOLATION=docker pnpm test`. Without that image or daemon, optional demo runs report skipped isolation cases; requested Docker checks fail closed. Provider tests use isolated fixture transports. See [test evidence](docs/completion.md) for verified results.
+`pnpm test` uses `.env.demo` and refuses remote databases. Start `pnpm dev:demo` and `pnpm worker:demo` before the Chrome browser journey. Tests exercise local Auth, Postgres, private Storage, and FFmpeg. To require the container canaries, install the documented parser image and run `MEDIAFLOCK_MEDIA_ISOLATION=docker pnpm test`. Without that image or daemon, optional demo runs report skipped isolation cases; requested Docker checks fail closed. Provider tests use isolated fixture transports. See [test evidence](docs/completion.md) for verified results.
 
 ## API and MCP
 
