@@ -161,6 +161,13 @@
       "homepage": "https://github.com/eslint-community/regexpp#readme"
     },
     {
+      "name": "@fortawesome/fontawesome-common-types",
+      "versions": ["6.7.2"],
+      "license": "MIT",
+      "author": "The Font Awesome Team",
+      "homepage": "https://fontawesome.com"
+    },
+    {
       "name": "@hono/node-server",
       "versions": ["2.1.3"],
       "license": "MIT",
@@ -223,8 +230,22 @@
       "homepage": "https://github.com/jaredwray/keyv"
     },
     {
+      "name": "@modelcontextprotocol/core",
+      "versions": ["2.0.0"],
+      "license": "MIT",
+      "author": "Anthropic, PBC",
+      "homepage": "https://modelcontextprotocol.io"
+    },
+    {
       "name": "@modelcontextprotocol/sdk",
       "versions": ["1.32.0"],
+      "license": "MIT",
+      "author": "Anthropic, PBC",
+      "homepage": "https://modelcontextprotocol.io"
+    },
+    {
+      "name": "@modelcontextprotocol/server",
+      "versions": ["2.0.0"],
       "license": "MIT",
       "author": "Anthropic, PBC",
       "homepage": "https://modelcontextprotocol.io"
@@ -532,6 +553,41 @@
       "homepage": "https://github.com/unrs/unrs-resolver"
     },
     {
+      "name": "@vgpu/adapter-mock",
+      "versions": ["0.5.0"],
+      "license": "MIT",
+      "author": "Matias Gonzalez",
+      "homepage": "https://vgpu.sh"
+    },
+    {
+      "name": "@vgpu/adapter-node",
+      "versions": ["0.5.0"],
+      "license": "MIT",
+      "author": "Matias Gonzalez",
+      "homepage": "https://vgpu.sh"
+    },
+    {
+      "name": "@vgpu/core",
+      "versions": ["0.5.0"],
+      "license": "MIT",
+      "author": "Matias Gonzalez",
+      "homepage": "https://vgpu.sh"
+    },
+    {
+      "name": "@vgpu/wgsl",
+      "versions": ["0.5.0"],
+      "license": "MIT",
+      "author": "Matias Gonzalez",
+      "homepage": "https://vgpu.sh"
+    },
+    {
+      "name": "@vgpu/wgsl-std",
+      "versions": ["0.5.0"],
+      "license": "MIT",
+      "author": "Matias Gonzalez",
+      "homepage": "https://vgpu.sh"
+    },
+    {
       "name": "@vitest/mocker",
       "versions": ["5.0.3"],
       "license": "MIT",
@@ -677,13 +733,6 @@
       "license": "MIT",
       "author": "Jakub Antalik",
       "homepage": "https://libraries.dev/beam"
-    },
-    {
-      "name": "bot-avatars",
-      "versions": ["0.2.2"],
-      "license": "MIT",
-      "author": "Jakub Antalik",
-      "homepage": "https://libraries.dev/bots"
     },
     {
       "name": "brace-expansion",
@@ -2117,6 +2166,12 @@
       "homepage": "https://github.com/crouchcd/pkce-challenge#readme"
     },
     {
+      "name": "pngjs",
+      "versions": ["7.0.0"],
+      "license": "MIT",
+      "homepage": "https://github.com/lukeapage/pngjs"
+    },
+    {
       "name": "possible-typed-array-names",
       "versions": ["1.1.0"],
       "license": "MIT",
@@ -2539,6 +2594,12 @@
       "homepage": "https://github.com/tinylibs/tinybench#readme"
     },
     {
+      "name": "tinyest",
+      "versions": ["0.3.4"],
+      "license": "MIT",
+      "homepage": "https://docs.swmansion.com/TypeGPU"
+    },
+    {
       "name": "tinyexec",
       "versions": ["1.3.1"],
       "license": "MIT",
@@ -2629,6 +2690,19 @@
       "homepage": "https://github.com/inspect-js/typed-array-length#readme"
     },
     {
+      "name": "typed-binary",
+      "versions": ["4.3.3"],
+      "license": "MIT",
+      "author": "Iwo Plaza",
+      "homepage": "https://iwoplaza.github.io/typed-binary/"
+    },
+    {
+      "name": "typegpu",
+      "versions": ["0.12.6"],
+      "license": "MIT",
+      "homepage": "https://typegpu.com"
+    },
+    {
       "name": "typescript-eslint",
       "versions": ["8.71.0"],
       "license": "MIT",
@@ -2675,6 +2749,13 @@
       "homepage": "https://github.com/jshttp/vary#readme"
     },
     {
+      "name": "vgpu",
+      "versions": ["0.5.0"],
+      "license": "MIT",
+      "author": "Matias Gonzalez",
+      "homepage": "https://vgpu.sh"
+    },
+    {
       "name": "vite",
       "versions": ["8.3.2"],
       "license": "MIT",
@@ -2687,6 +2768,20 @@
       "license": "MIT",
       "author": "Anthony Fu",
       "homepage": "https://vitest.dev"
+    },
+    {
+      "name": "webgpu",
+      "versions": ["0.4.0"],
+      "license": "MIT",
+      "author": "",
+      "homepage": "https://github.com/dawn-gpu/node-webgpu#readme"
+    },
+    {
+      "name": "wgpu-matrix",
+      "versions": ["3.4.2"],
+      "license": "MIT",
+      "author": "Gregg Tavares",
+      "homepage": "https://github.com/greggman/wgpu-matrix#readme"
     },
     {
       "name": "which-boxed-primitive",
@@ -2989,6 +3084,12 @@
       "homepage": "https://sharp.pixelplumbing.com"
     },
     {
+      "name": "tsover-runtime",
+      "versions": ["0.0.7"],
+      "license": "Apache-2.0",
+      "homepage": "https://tsover.swmansion.com"
+    },
+    {
       "name": "typescript",
       "versions": ["5.9.3"],
       "license": "Apache-2.0",
@@ -3003,6 +3104,15 @@
       "license": "OFL-1.1",
       "author": "Google Inc.",
       "homepage": "https://fontsource.org/fonts/instrument-serif"
+    }
+  ],
+  "(CC-BY-4.0 AND MIT)": [
+    {
+      "name": "@fortawesome/free-brands-svg-icons",
+      "versions": ["6.7.2"],
+      "license": "(CC-BY-4.0 AND MIT)",
+      "author": "The Font Awesome Team",
+      "homepage": "https://fontawesome.com"
     }
   ],
   "LGPL-3.0-or-later": [
@@ -3118,6 +3228,13 @@
       "homepage": "https://github.com/alexeyraspopov/picocolors#readme"
     },
     {
+      "name": "pixelmatch",
+      "versions": ["7.2.0"],
+      "license": "ISC",
+      "author": "Volodymyr Agafonkin",
+      "homepage": "https://github.com/mapbox/pixelmatch#readme"
+    },
+    {
       "name": "semver",
       "versions": ["6.3.1", "7.8.5"],
       "license": "ISC",
@@ -3172,6 +3289,47 @@
       "license": "ISC",
       "author": "Stefan Terdell",
       "homepage": "https://github.com/StefanTerdell/zod-to-json-schema#readme"
+    }
+  ],
+  "BSD-3-Clause": [
+    {
+      "name": "@webgpu/types",
+      "versions": ["0.1.74"],
+      "license": "BSD-3-Clause",
+      "homepage": "https://github.com/gpuweb/types"
+    },
+    {
+      "name": "esquery",
+      "versions": ["1.7.0"],
+      "license": "BSD-3-Clause",
+      "author": "Joel Feenstra",
+      "homepage": "https://github.com/estools/esquery/"
+    },
+    {
+      "name": "fast-uri",
+      "versions": ["3.1.8"],
+      "license": "BSD-3-Clause",
+      "author": "Vincent Le Goff",
+      "homepage": "https://github.com/fastify/fast-uri"
+    },
+    {
+      "name": "qs",
+      "versions": ["6.16.0"],
+      "license": "BSD-3-Clause",
+      "homepage": "https://github.com/ljharb/qs"
+    },
+    {
+      "name": "source-map-js",
+      "versions": ["1.2.2"],
+      "license": "BSD-3-Clause",
+      "author": "Valentin 7rulnik Semirulnik",
+      "homepage": "https://github.com/7rulnik/source-map-js"
+    },
+    {
+      "name": "zrender",
+      "versions": ["6.0.0"],
+      "license": "BSD-3-Clause",
+      "homepage": "https://github.com/ecomfe/zrender#readme"
     }
   ],
   "MPL-2.0": [
@@ -3261,41 +3419,6 @@
       "license": "BSD-2-Clause",
       "author": "Gary Court",
       "homepage": "https://github.com/garycourt/uri-js"
-    }
-  ],
-  "BSD-3-Clause": [
-    {
-      "name": "esquery",
-      "versions": ["1.7.0"],
-      "license": "BSD-3-Clause",
-      "author": "Joel Feenstra",
-      "homepage": "https://github.com/estools/esquery/"
-    },
-    {
-      "name": "fast-uri",
-      "versions": ["3.1.8"],
-      "license": "BSD-3-Clause",
-      "author": "Vincent Le Goff",
-      "homepage": "https://github.com/fastify/fast-uri"
-    },
-    {
-      "name": "qs",
-      "versions": ["6.16.0"],
-      "license": "BSD-3-Clause",
-      "homepage": "https://github.com/ljharb/qs"
-    },
-    {
-      "name": "source-map-js",
-      "versions": ["1.2.2"],
-      "license": "BSD-3-Clause",
-      "author": "Valentin 7rulnik Semirulnik",
-      "homepage": "https://github.com/7rulnik/source-map-js"
-    },
-    {
-      "name": "zrender",
-      "versions": ["6.0.0"],
-      "license": "BSD-3-Clause",
-      "homepage": "https://github.com/ecomfe/zrender#readme"
     }
   ],
   "SIL OPEN FONT LICENSE": [

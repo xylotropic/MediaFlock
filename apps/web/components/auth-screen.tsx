@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { ThinkingOrb } from "thinking-orbs";
-import { BotAvatar } from "bot-avatars";
 import { Brand, ErrorNote } from "./ui";
 import { useReducedMotion } from "./effects";
 
@@ -173,18 +172,6 @@ export function AuthPanel({
           <Brand />
         </Link>
         <div className="auth-brand-content">
-          <div className="auth-bot" aria-hidden="true">
-            <BotAvatar
-              type="clover"
-              color="#dedede"
-              saturation={0.5}
-              size={88}
-              theme="dark"
-              state={busy ? "working" : "default"}
-              paused={reduced}
-              interactive={false}
-            />
-          </div>
           <h1>
             Make it.
             <br />

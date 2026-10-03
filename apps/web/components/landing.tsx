@@ -1,26 +1,33 @@
 "use client";
+
 import Link from "next/link";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  CalendarDays,
-  SquarePen,
-  ChartNoAxesCombined,
-} from "lucide-react";
-import { BotAvatar } from "bot-avatars";
+import { useState } from "react";
+import { ArrowRight, ArrowUpRight, Pause, Play } from "lucide-react";
+import { ThinkingOrb } from "thinking-orbs";
 import { Brand } from "./ui";
 import { useReducedMotion } from "./effects";
+import { LandingFeatures } from "./landing-features";
+import { PlatformMark, socialPlatforms } from "./platform-mark";
+import styles from "./landing.module.css";
 
 export function Landing() {
   const reduced = useReducedMotion();
+  const [paused, setPaused] = useState(false);
+  const motionPaused = reduced || paused;
+
   return (
-    <div className="landing">
-      <header className="landing-nav">
+    <div
+      className={styles.landing}
+      data-motion={motionPaused ? "paused" : "on"}
+    >
+      <header className={styles.navigation}>
         <Link href="/" aria-label="MediaFlock home">
           <Brand />
         </Link>
         <nav aria-label="Website navigation">
-          <a href="#how-it-works">How it works</a>
+          <a href="#features" className={styles.featuresLink}>
+            Features
+          </a>
           <Link href="/signin">Sign in</Link>
           <Link href="/signup" className="btn primary">
             Get started
@@ -28,9 +35,10 @@ export function Landing() {
           </Link>
         </nav>
       </header>
+
       <main>
-        <section className="landing-hero" aria-labelledby="landing-title">
-          <div>
+        <section className={styles.hero} aria-labelledby="landing-title">
+          <div className={styles.heroCopy}>
             <h1 id="landing-title">
               Make it.
               <br />
@@ -42,128 +50,90 @@ export function Landing() {
               MediaFlock is a next generation Social Media Harness built for
               brands trying to scale.
             </p>
-            <div className="landing-actions">
+            <div className={styles.actions}>
               <Link href="/signup" className="btn primary">
                 Create your account
                 <ArrowRight size={16} />
               </Link>
-              <Link href="/app" className="landing-secondary">
+              <Link href="/app" className={styles.secondaryLink}>
                 Open MediaFlock
                 <ArrowUpRight size={15} />
               </Link>
             </div>
           </div>
-          <div className="landing-art" aria-hidden="true">
-            <div className="landing-art-ring" />
-            <BotAvatar
-              type="clover"
-              color="#c9c9c9"
-              ink="#141414"
-              saturation={0.5}
-              size={260}
-              theme="light"
-              paused={reduced}
-              interactive={false}
-              jumpEvery={10}
-            />
-            <span className="landing-art-label">
+          <div className={styles.heroArt} aria-hidden="true">
+            <div className={styles.heroGrid} />
+            <div className={styles.heroOrbit} />
+            <div className={styles.heroOrbitInner} />
+            <span className={`${styles.heroPlatform} ${styles.heroYoutube}`}>
+              <PlatformMark icon={socialPlatforms[0].icon} />
+            </span>
+            <span className={`${styles.heroPlatform} ${styles.heroInstagram}`}>
+              <PlatformMark icon={socialPlatforms[1].icon} />
+            </span>
+            <span className={`${styles.heroPlatform} ${styles.heroTiktok}`}>
+              <PlatformMark icon={socialPlatforms[2].icon} />
+            </span>
+            <div className={styles.heroOrb}>
+              <ThinkingOrb
+                state="composing"
+                size={64}
+                theme="light"
+                paused={motionPaused}
+              />
+            </div>
+            <span className={styles.heroArtLabel}>
               Your next post starts here.
             </span>
           </div>
         </section>
-        <section
-          id="how-it-works"
-          className="landing-workflow"
-          aria-labelledby="workflow-title"
-        >
-          <div className="landing-section-top">
-            <span className="eyebrow">The workflow</span>
-            <h2 id="workflow-title">One idea. More places to grow.</h2>
+
+        <section className={styles.platforms} aria-labelledby="platforms-title">
+          <div className={styles.platformHeading}>
+            <div>
+              <h2 id="platforms-title">Your audience. Your platforms.</h2>
+              <p>A single workspace for the accounts you use.</p>
+            </div>
+            <button
+              type="button"
+              className={styles.motionButton}
+              onClick={() => setPaused(!paused)}
+              disabled={reduced}
+              aria-pressed={motionPaused}
+              aria-label={
+                reduced
+                  ? "Animations are off because of your motion preference"
+                  : paused
+                    ? "Play page animations"
+                    : "Pause page animations"
+              }
+            >
+              {motionPaused ? <Play size={12} /> : <Pause size={12} />}
+              {reduced ? "Motion off" : paused ? "Play motion" : "Pause motion"}
+            </button>
           </div>
-          <div className="landing-steps">
-            <article>
-              <span className="landing-step-number">01</span>
-              <SquarePen size={24} />
-              <h3>Make it yours.</h3>
-              <p>
-                Bring your ideas, clips, and images. Create a version that fits
-                each account.
-              </p>
-            </article>
-            <article>
-              <span className="landing-step-number">02</span>
-              <CalendarDays size={24} />
-              <h3>Give it a time.</h3>
-              <p>
-                Review your posts, approve the details, and schedule them on
-                your calendar.
-              </p>
-            </article>
-            <article>
-              <span className="landing-step-number">03</span>
-              <ChartNoAxesCombined size={24} />
-              <h3>See what worked.</h3>
-              <p>
-                Check delivery and account performance. Use the results to plan
-                your next post.
-              </p>
-            </article>
-          </div>
-        </section>
-        <section className="landing-platforms">
-          <p>Built for the accounts you use.</p>
-          <div>
-            YouTube <span>Instagram</span> TikTok <span>Facebook</span> LinkedIn{" "}
-            <span>X</span>
+          <div className={styles.marquee}>
+            <div className={styles.marqueeTrack}>
+              {[0, 1, 2].map((group) => (
+                <ul
+                  className={styles.logoGroup}
+                  key={group}
+                  aria-hidden={group > 0 ? true : undefined}
+                >
+                  {socialPlatforms.map((platform) => (
+                    <li key={platform.name}>
+                      <PlatformMark icon={platform.icon} />
+                      <span>{platform.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              ))}
+            </div>
           </div>
         </section>
-        <section className="landing-faq" aria-labelledby="faq-title">
-          <h2 id="faq-title">A few things to know.</h2>
-          <div>
-            <details>
-              <summary>Can I write posts without AI?</summary>
-              <p>
-                Yes. Write and edit your own drafts. You can connect OpenAI if
-                you want help creating variations.
-              </p>
-            </details>
-            <details>
-              <summary>How do I connect my accounts?</summary>
-              <p>
-                Open Connections, add your Post for Me key, and authorize your
-                social accounts. You control which accounts and formats can
-                publish.
-              </p>
-            </details>
-            <details>
-              <summary>Do my drafts publish right away?</summary>
-              <p>
-                No. You review and approve the exact post and publishing time
-                before it can be scheduled.
-              </p>
-            </details>
-          </div>
-        </section>
-        <section className="landing-cta">
-          <h2>Make your next move.</h2>
-          <Link href="/signup" className="btn primary">
-            Get started
-            <ArrowUpRight size={16} />
-          </Link>
-        </section>
+
+        <LandingFeatures paused={motionPaused} />
       </main>
-      <footer className="landing-footer">
-        <Brand />
-        <p>Create. Schedule. Grow.</p>
-        <Link
-          href="https://github.com/xylotropic/MediaFlock"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Open source
-          <ArrowUpRight size={13} />
-        </Link>
-      </footer>
     </div>
   );
 }

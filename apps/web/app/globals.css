@@ -2061,11 +2061,6 @@ html {
 .auth-brand-content {
   padding: 10px 0 24px;
 }
-.auth-bot {
-  margin-bottom: 24px;
-  width: 88px;
-  height: 88px;
-}
 .auth-home {
   display: flex;
   align-items: center;

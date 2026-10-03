@@ -5,6 +5,7 @@ import { ThinkingOrb, type OrbState } from "thinking-orbs";
 import { BorderBeam } from "border-beam";
 import { Liquid } from "liquid-gooey";
 import { motion } from "motion/react";
+import { ShaderOrb } from "./shader-orb";
 const MetalFx = dynamic(() => import("metal-fx").then((m) => m.MetalFx), {
   ssr: false,
 });
@@ -50,13 +51,11 @@ export function OperationStatus({
   const reduced = useReducedMotion();
   return (
     <div className="operation-status" role="status">
-      <ThinkingOrb
-        state={state}
+      <ShaderOrb
+        variant={state === "composing" ? "compose" : "process"}
+        state="thinking"
         size={64}
-        theme="light"
         paused={reduced}
-        speed={0.6}
-        aria-hidden="true"
       />
       <div>
         <strong>{label}</strong>

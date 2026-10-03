@@ -12,7 +12,7 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "allowJs": false,
-    "types": ["node"],
+    "types": ["node", "@webgpu/types"],
     "paths": {
       "@/*": ["./apps/web/*"]
     }
