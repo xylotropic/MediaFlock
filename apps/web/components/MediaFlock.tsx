@@ -1,5 +1,10 @@
 "use client";
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -21,9 +26,8 @@ import {
   ArrowRight,
   Plus,
 } from "lucide-react";
-import { motion, LayoutGroup } from "motion/react";
-import { useReducedMotion } from "./effects";
-import { AppContext } from "./context";
+import { OperationStatus } from "./effects";
+import { AppContext, type LoadCache } from "./context";
 import { Brand, Modal } from "./ui";
 import {
   Overview,
@@ -39,7 +43,6 @@ import {
 } from "./screens";
 import { ConnectionsPage } from "./connections";
 import { AuthPanel } from "./auth-screen";
-import { useNavigationTransition } from "./navigation-transition";
 const navigation = [
   ["overview", "Overview", LayoutDashboard],
   ["studio", "Content", SquarePen],
@@ -81,8 +84,7 @@ export function MediaFlock() {
       window.dispatchEvent(new Event("mediaflock-sidebar"));
     } catch {}
   }
-  const reducedMotion = useReducedMotion();
-  const beginNavigation = useNavigationTransition();
+  const [loadCache] = useState<LoadCache>(() => new Map());
   const [config, setConfig] = useState<any>(null),
     [session, setSession] = useState<any>(null),
     [loading, setLoading] = useState(true),
@@ -164,7 +166,8 @@ export function MediaFlock() {
     [session],
   );
   const navigate = (next: string) => {
-    if (next !== screen) beginNavigation();
+    if (next !== screen)
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     setScreen(next);
     setMenu(false);
     const url = new URL(window.location.href);
@@ -179,7 +182,12 @@ export function MediaFlock() {
       (x: any) => x.id === session.workspaceId,
     ),
     timezone = workspace?.timezone || "America/New_York";
-  if (loading) return <div className="loading">Loading MediaFlock…</div>;
+  if (loading)
+    return (
+      <div className="app-loading">
+        <OperationStatus label="Loading MediaFlock…" state="connecting" />
+      </div>
+    );
   if (!session)
     return (
       <AuthPanel
@@ -203,6 +211,7 @@ export function MediaFlock() {
     inspectJob: setJobId,
     newContent: () => setPackageModal(true),
     timezone,
+    loadCache,
   };
   const title = navigation.find((x) => x[0] === screen)?.[1] || "Overview";
   const initials = String(session.user.name || "Floyd Korzan")
@@ -249,38 +258,20 @@ export function MediaFlock() {
             </button>
           </div>
           <nav className="nav" aria-label="Main navigation">
-            <LayoutGroup id="mediaflock-sidebar">
-              {navigation.map(([id, label, Icon]) => (
-                <button
-                  key={id}
-                  className={screen === id ? "selected" : ""}
-                  onClick={() => navigate(id)}
-                  aria-label={label}
-                  title={collapsed ? label : undefined}
-                  aria-current={screen === id ? "page" : undefined}
-                >
-                  {screen === id && (
-                    <motion.span
-                      className="nav-selection"
-                      layoutId="sidebar-selection"
-                      initial={false}
-                      transition={
-                        reducedMotion
-                          ? { duration: 0 }
-                          : {
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 42,
-                              mass: 0.8,
-                            }
-                      }
-                    />
-                  )}
-                  <Icon size={15} strokeWidth={1.6} />
-                  <span>{label}</span>
-                </button>
-              ))}
-            </LayoutGroup>
+            {navigation.map(([id, label, Icon]) => (
+              <button
+                key={id}
+                className={screen === id ? "selected" : ""}
+                onClick={() => navigate(id)}
+                aria-label={label}
+                title={collapsed ? label : undefined}
+                aria-current={screen === id ? "page" : undefined}
+              >
+                {screen === id && <span className="nav-selection" />}
+                <Icon size={15} strokeWidth={1.6} />
+                <span>{label}</span>
+              </button>
+            ))}
           </nav>
           <div className="sidebar-bottom">
             <div className="profile">

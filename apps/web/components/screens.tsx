@@ -12,6 +12,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Download,
   Check,
   RefreshCw,
@@ -56,6 +57,9 @@ const blankPayload = {
   media: [],
   utm: "",
 };
+const workspaceTimezones = Array.from(
+  new Set(["UTC", ...Intl.supportedValuesOf("timeZone")]),
+).sort();
 function Loading({ error }: { error?: string }) {
   return error ? (
     <ErrorNote message={error} />
@@ -375,6 +379,8 @@ export function Library() {
         tag.toLowerCase().includes(search.toLowerCase()),
       ),
   );
+  if ((tab === "content" ? packages : assets) === null)
+    return <Loading error={tab === "content" ? packageError : assetError} />;
   return (
     <>
       <Header
@@ -899,6 +905,7 @@ export function Studio({
 }) {
   const { data: packages, error } = useLoad("packages"),
     { newContent } = useApp();
+  if (!packageId && packages === null) return <Loading error={error} />;
   return (
     <>
       {!packageId ? (
@@ -1810,6 +1817,7 @@ export function Approvals() {
     { timezone } = useApp(),
     [filter, setFilter] = useState("pending"),
     [review, setReview] = useState<any>(null);
+  if (data === null) return <Loading error={error} />;
   const visible = data?.filter(
     (x: any) => filter === "all" || x.status === filter,
   );
@@ -2405,6 +2413,7 @@ export function Calendar() {
       month: "2-digit",
       day: "2-digit",
     }).format(new Date(date));
+  if (jobs === null) return <Loading error={error} />;
   return (
     <>
       <Header
@@ -2639,6 +2648,7 @@ export function Analytics() {
     .sort(
       (a: any, b: any) => +new Date(a.observed_at) - +new Date(b.observed_at),
     );
+  if (data === null) return <Loading error={error} />;
   return (
     <>
       <Header
@@ -3574,6 +3584,7 @@ export function Accounts() {
     {} = useApp(),
     [inspect, setInspect] = useState<string | null>(null),
     [connect, setConnect] = useState(false);
+  if (data === null) return <Loading error={error} />;
   return (
     <>
       <Header
@@ -4126,6 +4137,7 @@ export function SettingsPage() {
     setTimezone(data.workspace.timezone);
   }
   const worker = data?.worker?.[0];
+  if (data === null) return <Loading error={error} />;
   return (
     <>
       <Header title="Settings" />
@@ -4133,11 +4145,19 @@ export function SettingsPage() {
       <section className="settings-section stack">
         <h2>Preferences</h2>
         <Field label="Timezone">
-          <input
+          <select
             aria-label="Workspace timezone"
             value={timezone}
             onChange={(e) => setTimezone(e.target.value)}
-          />
+          >
+            {Array.from(new Set([timezone, ...workspaceTimezones]))
+              .sort()
+              .map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone.replaceAll("_", " ").replaceAll("/", " / ")}
+                </option>
+              ))}
+          </select>
         </Field>
         <button
           className="btn"
@@ -4307,17 +4327,23 @@ export function SettingsPage() {
           )}
         </section>
       )}
-      <details className="settings-section">
-        <summary>API access</summary>
-        <div className="stack section-space">
+      <details className="settings-section settings-disclosure">
+        <summary>
+          <span>API access</span>
+          <ChevronDown size={16} aria-hidden="true" />
+        </summary>
+        <div className="stack settings-api-content">
           <div className="row spread">
             <h2>Access tokens</h2>
             <button className="btn compact" onClick={() => setToken(true)}>
               Create token
             </button>
           </div>
-          {data?.tokens.map((t: any) => (
-            <div className="row spread" key={t.id}>
+          {!data.tokens.length && (
+            <p className="small muted">No access tokens yet.</p>
+          )}
+          {data.tokens.map((t: any) => (
+            <div className="row spread settings-token-row" key={t.id}>
               <div>
                 <strong>{t.name}</strong>
                 <p className="tiny muted">
@@ -4351,7 +4377,7 @@ export function SettingsPage() {
             </div>
           ))}
           <a
-            className="action-link tiny"
+            className="action-link tiny settings-api-link"
             href="/api/openapi"
             target="_blank"
             rel="noreferrer"

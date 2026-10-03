@@ -6,6 +6,13 @@ import {
   useEffect,
   useState,
 } from "react";
+interface LoadEntry {
+  data: any;
+  version: number;
+  fetchedAt: number;
+  pending?: Promise<any>;
+}
+export type LoadCache = Map<string, LoadEntry>;
 export interface AppState {
   session: any;
   mode: "demo" | "live";
@@ -18,48 +25,90 @@ export interface AppState {
   inspectJob: (id: string) => void;
   newContent: () => void;
   timezone: string;
+  loadCache: LoadCache;
 }
 export const AppContext = createContext<AppState | null>(null);
 export function useApp() {
   return useContext(AppContext)!;
 }
 export function useLoad(path: string) {
-  const { request, version } = useApp();
-  const [data, setData] = useState<any>(null),
-    [error, setError] = useState(""),
-    [loading, setLoading] = useState(true);
+  const { request, version, session, loadCache } = useApp();
+  const key = JSON.stringify([session.user.id, session.workspaceId, path]);
+  const [result, setResult] = useState(() => ({
+    key,
+    data: loadCache.get(key)?.data ?? null,
+    error: "",
+    loading: !loadCache.get(key)?.data,
+  }));
+  const read = useCallback(
+    (force = false) => {
+      const cached = loadCache.get(key);
+      if (!force && cached?.version === version) {
+        if (cached.pending) return cached.pending;
+        if (cached.data !== null && Date.now() - cached.fetchedAt < 60000)
+          return Promise.resolve(cached.data);
+      }
+      const entry: LoadEntry = {
+        data: cached?.data ?? null,
+        version,
+        fetchedAt: 0,
+      };
+      const pending = request(path)
+        .then((data) => {
+          if (loadCache.get(key) === entry) {
+            entry.data = data;
+            entry.fetchedAt = Date.now();
+          }
+          return data;
+        })
+        .finally(() => {
+          if (loadCache.get(key) === entry) entry.pending = undefined;
+        });
+      entry.pending = pending;
+      loadCache.set(key, entry);
+      return pending;
+    },
+    [key, loadCache, path, request, version],
+  );
   const load = useCallback(async () => {
-    setLoading(true);
+    setResult((current) => ({ ...current, loading: true }));
     try {
-      const d = await request(path);
-      setData(d);
-      setError("");
+      setResult({ key, data: await read(true), error: "", loading: false });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load these items.");
-    } finally {
-      setLoading(false);
+      setResult((current) => ({
+        ...current,
+        key,
+        error: e instanceof Error ? e.message : "Could not load these items.",
+        loading: false,
+      }));
     }
-  }, [path, request]);
+  }, [key, read]);
   useEffect(() => {
     let cancelled = false;
-    request(path)
-      .then((d) => {
-        if (!cancelled) {
-          setData(d);
-          setError("");
-        }
+    read()
+      .then((data) => {
+        if (!cancelled) setResult({ key, data, error: "", loading: false });
       })
       .catch((e) => {
-        if (!cancelled) setError(e.message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled)
+          setResult({
+            key,
+            data: loadCache.get(key)?.data ?? null,
+            error:
+              e instanceof Error ? e.message : "Could not load these items.",
+            loading: false,
+          });
       });
     return () => {
       cancelled = true;
     };
-  }, [path, request, version]);
-  return { data, error, loading, reload: load };
+  }, [key, loadCache, read]);
+  return {
+    data: result.key === key ? result.data : (loadCache.get(key)?.data ?? null),
+    error: result.key === key ? result.error : "",
+    loading: result.key === key ? result.loading : !loadCache.get(key)?.data,
+    reload: load,
+  };
 }
 export function useAction() {
   const { refresh, notify } = useApp();

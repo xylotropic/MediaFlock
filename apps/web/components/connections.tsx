@@ -4,6 +4,7 @@ import { ArrowRight, ExternalLink, Plus } from "lucide-react";
 import { useApp, useLoad, useAction } from "./context";
 import { Header, ErrorNote, LocalTime } from "./ui";
 import { ConnectModal, IntegrationModal, ServiceModal } from "./screens";
+import { OperationStatus } from "./effects";
 
 export function ConnectionsPage() {
   const { data, error } = useLoad("integrations"),
@@ -14,6 +15,12 @@ export function ConnectionsPage() {
   const [service, setService] = useState<string | null>(null),
     [connect, setConnect] = useState(false),
     [reference, setReference] = useState(false);
+  if (data === null)
+    return error ? (
+      <ErrorNote message={error} />
+    ) : (
+      <OperationStatus label="Loading connections…" state="connecting" />
+    );
   return (
     <>
       <Header
