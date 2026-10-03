@@ -1,5 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
+import { z } from "zod";
 import { deflateSync } from "node:zlib";
 import { db, closeDb, type Context } from "../packages/db";
 import { storageAdmin } from "../packages/domain/auth";
@@ -21,7 +23,12 @@ import {
   proposeObservation,
 } from "../packages/experiments";
 import { uploadAsset, runProcess } from "../packages/media";
-const W = "11111111-1111-4111-8111-111111111111",
+const W = z
+    .uuid()
+    .parse(
+      process.env.MEDIAFLOCK_SEED_WORKSPACE_ID ||
+        "11111111-1111-4111-8111-111111111111",
+    ),
   W2 = "22222222-2222-4222-8222-222222222222";
 async function ensureUser(email: string, name: string) {
   const auth = storageAdmin().auth.admin;
@@ -111,10 +118,10 @@ async function main() {
     existing &&
     (
       await db().query(
-        "select count(*)::int as n from content_packages where workspace_id=$1 and title='Mixed destination example'",
+        "select count(distinct j.account_id)::int as n from publish_jobs j join publication_targets t on t.id=j.target_id join approvals a on a.id=t.approval_id join platform_variants v on v.id=a.variant_id join content_packages p on p.id=v.package_id where p.workspace_id=$1 and p.title='Mixed destination example' and j.state in ('published','failed')",
         [W],
       )
-    ).rows[0].n
+    ).rows[0].n >= 2
   ) {
     console.log("Demo workspace already seeded. Existing edits preserved.");
     return;
@@ -239,31 +246,35 @@ async function main() {
     "No hashtags. Use short paragraphs with a concrete takeaway.",
   );
   await mkdir("artifacts/fixtures", { recursive: true });
-  await writeFile("artifacts/fixtures/original-study.png", samplePNG());
-  await runProcess("ffmpeg", [
-    "-hide_banner",
-    "-loglevel",
-    "error",
-    "-f",
-    "lavfi",
-    "-i",
-    "testsrc2=size=640x360:rate=24:duration=6",
-    "-f",
-    "lavfi",
-    "-i",
-    "sine=frequency=440:duration=6",
-    "-c:v",
-    "libx264",
-    "-threads",
-    "2",
-    "-pix_fmt",
-    "yuv420p",
-    "-c:a",
-    "aac",
-    "-shortest",
-    "-y",
-    "artifacts/fixtures/original-motion.mp4",
-  ]);
+  if (!existsSync("artifacts/fixtures/original-study.png"))
+    await writeFile("artifacts/fixtures/original-study.png", samplePNG(), {
+      flag: "wx",
+    });
+  if (!existsSync("artifacts/fixtures/original-motion.mp4"))
+    await runProcess("ffmpeg", [
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=640x360:rate=24:duration=6",
+      "-f",
+      "lavfi",
+      "-i",
+      "sine=frequency=440:duration=6",
+      "-c:v",
+      "libx264",
+      "-threads",
+      "2",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-shortest",
+      "-n",
+      "artifacts/fixtures/original-motion.mp4",
+    ]);
   const image = await uploadAsset(
     ctx,
     "original-study.png",
@@ -456,7 +467,7 @@ async function main() {
     sourceNotes: "Isolated failure example.",
     brief: "Show per-destination outcomes.",
     tags: ["fixture"],
-    assetIds: [],
+    assetIds: [video!.id],
   });
   for (const a of [accounts[3], accounts[accounts.length - 1]]) {
     const v = await createVariant(
@@ -470,7 +481,10 @@ async function main() {
           caption: "Simulated outcome for this account.",
           cta: "",
           visibility: "public",
-          media: [],
+          media:
+            a.format === "video"
+              ? [{ assetId: video!.id, derivativeId: null }]
+              : [],
           title: "",
           description: "",
           settings: {},
@@ -510,8 +524,12 @@ async function main() {
         [W, a.id, j!.id, { source: "seeded_missing_metric_fixture" }],
       );
   }
+  const manifestDirectory = process.env.MEDIAFLOCK_SEED_WORKSPACE_ID
+    ? "artifacts/test-data/seed-" + W
+    : "artifacts/fixtures";
+  await mkdir(manifestDirectory, { recursive: true });
   await writeFile(
-    "artifacts/fixtures/manifest.json",
+    manifestDirectory + "/manifest.json",
     JSON.stringify(
       {
         provenance: "original_local_fixtures",
