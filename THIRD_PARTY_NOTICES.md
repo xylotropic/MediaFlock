@@ -2,6 +2,8 @@
 
 MediaFlock application code is MIT licensed. Dependencies and adapted components retain their own licenses; service access is not included in this license.
 
+The local ChatGPT subscription flow is an independent implementation of OpenAI's documented Sign in with ChatGPT protocol. It uses the MIT-licensed jose library for OIDC signature verification and the existing OpenAI SDK's schema helper. No Sign in with ChatGPT devkit source is bundled or relicensed. Availability and plan permissions are controlled by OpenAI.
+
 - EvilCharts ECharts bar component: MIT, sourced from [legions-developer/evilcharts](https://github.com/legions-developer/evilcharts), including local evidence-click and ECharts 6 typing changes. License retained at `apps/web/components/evilcharts/LICENSE`.
 - `@vercel/functions` 3.9.11 and its `@vercel/oidc` dependency: Apache-2.0, retained in their installed packages.
 - Apache ECharts: Apache-2.0. Installed as a pinned package; no upstream source relicensing.

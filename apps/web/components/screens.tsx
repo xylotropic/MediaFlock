@@ -1267,7 +1267,7 @@ function GenerateModal({ pkg, onClose }: { pkg: any; onClose: () => void }) {
         <div className="note">
           {mode === "demo"
             ? "Demo drafts are preset examples. No AI service is called."
-            : "Connect OpenAI and set a usage limit to generate drafts. You can also write drafts yourself."}
+            : "Connect your ChatGPT subscription and choose a model in Connections on this Mac. You can also write drafts yourself."}
         </div>
       </div>
     </Modal>

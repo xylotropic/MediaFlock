@@ -28,7 +28,7 @@ function op(
             name: "service",
             in: "path",
             required: true,
-            schema: { type: "string", enum: ["postforme", "openai"] },
+            schema: { type: "string", enum: ["postforme"] },
           },
         ]
       : []),
@@ -275,7 +275,7 @@ op(
   undefined,
   true,
 );
-for (const service of ["openai", "postforme"]) {
+for (const service of ["postforme"]) {
   op(
     "/integrations/" + service,
     "put",
@@ -295,11 +295,91 @@ for (const service of ["openai", "postforme"]) {
   op(
     "/integrations/" + service + "/check",
     "post",
-    "Inspect configuration readiness; no external call",
+    "Check the provider connection with a read-only request",
     "",
     undefined,
     true,
   );
+}
+op(
+  "/integrations/openai",
+  "delete",
+  "Remove a legacy stored API key; subscription drafting never uses it",
+  "",
+  undefined,
+  true,
+);
+for (const [path, method, summary, schema] of [
+  [
+    "/subscriptions/chatgpt",
+    "get",
+    "Read local ChatGPT account status or hosted Mac handoff",
+    undefined,
+  ],
+  [
+    "/subscriptions/chatgpt/begin",
+    "post",
+    "Begin a local owner-bound ChatGPT sign-in",
+    "SubscriptionBegin",
+  ],
+  [
+    "/subscriptions/chatgpt/attempt",
+    "get",
+    "Read the initiating session's local sign-in attempt",
+    undefined,
+  ],
+  [
+    "/subscriptions/chatgpt/finalize",
+    "post",
+    "Finalize a verified local ChatGPT sign-in",
+    "SubscriptionAttempt",
+  ],
+  [
+    "/subscriptions/chatgpt/cancel",
+    "post",
+    "Cancel this session's local ChatGPT sign-in",
+    "SubscriptionAttempt",
+  ],
+  [
+    "/subscriptions/chatgpt/models",
+    "get",
+    "List this registration's available ChatGPT models",
+    undefined,
+  ],
+  [
+    "/subscriptions/chatgpt/select",
+    "post",
+    "Select a verified local ChatGPT registration",
+    "SubscriptionProfile",
+  ],
+  [
+    "/subscriptions/chatgpt/settings",
+    "put",
+    "Save local model and request-admission estimate",
+    "SubscriptionSettings",
+  ],
+  [
+    "/subscriptions/chatgpt/disconnect",
+    "post",
+    "Clear local credentials and attempt renewable-session revocation",
+    "SubscriptionProfile",
+  ],
+] as const) {
+  op(path, method, summary, "", schema, true);
+  paths[path][method].description +=
+    " Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.";
+  if (
+    [
+      "/subscriptions/chatgpt/attempt",
+      "/subscriptions/chatgpt/models",
+    ].includes(path)
+  )
+    paths[path][method].parameters.push({
+      name: path.endsWith("/attempt") ? "attemptId" : "profileId",
+      in: "query",
+      required: true,
+      schema: { type: "string", format: "uuid" },
+    });
 }
 op("/services", "post", "Register a service reference", "", undefined, true);
 op(
@@ -395,6 +475,17 @@ const spec = {
       Object.entries({
         CapabilityReview: capabilityReview,
         Integration: integrationInput,
+        SubscriptionBegin: z.object({
+          profileId: z.uuid().optional(),
+          enablePlanUsage: z.boolean().default(false),
+        }),
+        SubscriptionAttempt: z.object({ attemptId: z.uuid() }),
+        SubscriptionProfile: z.object({ profileId: z.uuid() }),
+        SubscriptionSettings: z.object({
+          profileId: z.uuid(),
+          model: z.string().min(1).max(100),
+          dailyTokenEstimate: z.number().int().min(1000).max(1000000),
+        }),
         ContentPackage: packageInput,
         Variant: variantInput,
         ApprovalRequest: approvalInput,

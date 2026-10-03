@@ -78,12 +78,24 @@ export default function PrivacyPage() {
             settings and policies.
           </p>
           <p>
-            If an owner enables OpenAI, the requested drafting or analysis
-            context is sent to OpenAI. This can include source text, writing
-            guidance, captions, and selected performance observations. Manual
-            drafting is available without this integration. Connecting a service
-            can involve processing in the locations where that service operates;
-            its own privacy policy also applies.
+            If the installed owner connects a ChatGPT subscription on their Mac,
+            the requested drafting or analysis context is sent to OpenAI. This
+            can include source text, writing guidance, captions, and selected
+            performance observations. Manual drafting is available without this
+            integration. Connecting a service can involve processing in the
+            locations where that service operates; its own privacy policy also
+            applies.
+          </p>
+          <p>
+            ChatGPT sign-in credentials are encrypted in the local Mac
+            installation with a key held in the Mac login keychain. They are not
+            stored in the hosted application database or browser storage. The
+            hosted website directs subscription connections to the local app.
+            Disconnecting removes the local tokens and attempts to revoke the
+            renewable session in ChatGPT; an unconfirmed remote revocation is
+            reported to the owner. Drafts and usage records remain in the
+            workspace. The ElevenLabs link opens its website without connecting
+            an account or transferring workspace content.
           </p>
           <p>
             Information may also be disclosed when required by law or necessary

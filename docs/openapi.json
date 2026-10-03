@@ -2567,152 +2567,6 @@
         }
       }
     },
-    "/integrations/openai": {
-      "put": {
-        "operationId": "put__integrations_openai",
-        "summary": "Save or rotate encrypted service configuration",
-        "description": "Authenticated human only. API and MCP tokens are rejected.",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Persisted domain result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {}
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failure"
-          },
-          "401": {
-            "description": "Authentication expired or token revoked"
-          },
-          "403": {
-            "description": "Scope, workspace, role or CSRF denied"
-          },
-          "409": {
-            "description": "Revision/state conflict or uncertainty"
-          },
-          "429": {
-            "description": "Rate limited; Retry-After header"
-          },
-          "503": {
-            "description": "Exact integration prerequisite unavailable"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Integration"
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "operationId": "delete__integrations_openai",
-        "summary": "Revoke stored service secret",
-        "description": "Authenticated human only. API and MCP tokens are rejected.",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Persisted domain result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {}
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failure"
-          },
-          "401": {
-            "description": "Authentication expired or token revoked"
-          },
-          "403": {
-            "description": "Scope, workspace, role or CSRF denied"
-          },
-          "409": {
-            "description": "Revision/state conflict or uncertainty"
-          },
-          "429": {
-            "description": "Rate limited; Retry-After header"
-          },
-          "503": {
-            "description": "Exact integration prerequisite unavailable"
-          }
-        }
-      }
-    },
-    "/integrations/openai/check": {
-      "post": {
-        "operationId": "post__integrations_openai_check",
-        "summary": "Inspect configuration readiness; no external call",
-        "description": "Authenticated human only. API and MCP tokens are rejected.",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Persisted domain result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {}
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failure"
-          },
-          "401": {
-            "description": "Authentication expired or token revoked"
-          },
-          "403": {
-            "description": "Scope, workspace, role or CSRF denied"
-          },
-          "409": {
-            "description": "Revision/state conflict or uncertainty"
-          },
-          "429": {
-            "description": "Rate limited; Retry-After header"
-          },
-          "503": {
-            "description": "Exact integration prerequisite unavailable"
-          }
-        }
-      }
-    },
     "/integrations/postforme": {
       "put": {
         "operationId": "put__integrations_postforme",
@@ -2816,7 +2670,7 @@
     "/integrations/postforme/check": {
       "post": {
         "operationId": "post__integrations_postforme_check",
-        "summary": "Inspect configuration readiness; no external call",
+        "summary": "Check the provider connection with a read-only request",
         "description": "Authenticated human only. API and MCP tokens are rejected.",
         "security": [
           {
@@ -2855,6 +2709,546 @@
           },
           "503": {
             "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/integrations/openai": {
+      "delete": {
+        "operationId": "delete__integrations_openai",
+        "summary": "Remove a legacy stored API key; subscription drafting never uses it",
+        "description": "Authenticated human only. API and MCP tokens are rejected.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt": {
+      "get": {
+        "operationId": "get__subscriptions_chatgpt",
+        "summary": "Read local ChatGPT account status or hosted Mac handoff",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt/begin": {
+      "post": {
+        "operationId": "post__subscriptions_chatgpt_begin",
+        "summary": "Begin a local owner-bound ChatGPT sign-in",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionBegin"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt/attempt": {
+      "get": {
+        "operationId": "get__subscriptions_chatgpt_attempt",
+        "summary": "Read the initiating session's local sign-in attempt",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attemptId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt/finalize": {
+      "post": {
+        "operationId": "post__subscriptions_chatgpt_finalize",
+        "summary": "Finalize a verified local ChatGPT sign-in",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionAttempt"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt/cancel": {
+      "post": {
+        "operationId": "post__subscriptions_chatgpt_cancel",
+        "summary": "Cancel this session's local ChatGPT sign-in",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionAttempt"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt/models": {
+      "get": {
+        "operationId": "get__subscriptions_chatgpt_models",
+        "summary": "List this registration's available ChatGPT models",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "profileId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt/select": {
+      "post": {
+        "operationId": "post__subscriptions_chatgpt_select",
+        "summary": "Select a verified local ChatGPT registration",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionProfile"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt/settings": {
+      "put": {
+        "operationId": "put__subscriptions_chatgpt_settings",
+        "summary": "Save local model and request-admission estimate",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionSettings"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/chatgpt/disconnect": {
+      "post": {
+        "operationId": "post__subscriptions_chatgpt_disconnect",
+        "summary": "Clear local credentials and attempt renewable-session revocation",
+        "description": "Authenticated human only. API and MCP tokens are rejected. Installed Mac web process and its offline-bound owner only. Vercel, workers, tokens and other workspaces cannot access local subscription credentials.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Persisted domain result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication expired or token revoked"
+          },
+          "403": {
+            "description": "Scope, workspace, role or CSRF denied"
+          },
+          "409": {
+            "description": "Revision/state conflict or uncertainty"
+          },
+          "429": {
+            "description": "Rate limited; Retry-After header"
+          },
+          "503": {
+            "description": "Exact integration prerequisite unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionProfile"
+              }
+            }
           }
         }
       }
@@ -3091,8 +3485,7 @@
             "schema": {
               "type": "string",
               "enum": [
-                "postforme",
-                "openai"
+                "postforme"
               ]
             }
           }
@@ -3269,6 +3662,82 @@
         "required": [
           "enabled",
           "config"
+        ],
+        "additionalProperties": false
+      },
+      "SubscriptionBegin": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "enablePlanUsage": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enablePlanUsage"
+        ],
+        "additionalProperties": false
+      },
+      "SubscriptionAttempt": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "attemptId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "attemptId"
+        ],
+        "additionalProperties": false
+      },
+      "SubscriptionProfile": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "profileId"
+        ],
+        "additionalProperties": false
+      },
+      "SubscriptionSettings": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "dailyTokenEstimate": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 1000000
+          }
+        },
+        "required": [
+          "profileId",
+          "model",
+          "dailyTokenEstimate"
         ],
         "additionalProperties": false
       },

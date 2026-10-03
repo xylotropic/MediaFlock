@@ -205,6 +205,7 @@ export async function requestContext(req: Request): Promise<Context> {
     role: member.role,
     kind: "human",
     authSessionId,
+    localInteractive: new URL(req.url).origin === getConfig().origin,
     scopes: ["read", "draft", "request_approval", "schedule", "analytics"],
   };
 }

@@ -30,6 +30,8 @@ import * as uploads from "../media/uploads";
 import * as analytics from "../analytics";
 import { id, platform } from "../schemas";
 import { verifiedSessionId } from "./session-security";
+import { chatgptRuntime } from "../chatgpt/runtime";
+import { localSubscriptionsEnabled } from "../chatgpt/local-vault";
 export async function dispatch(
   ctx: Context,
   method: string,
@@ -38,8 +40,72 @@ export async function dispatch(
   query = new URLSearchParams(),
 ): Promise<any> {
   const [root, resource, action] = path;
-  if (resource && !["connections", "integrations"].includes(root))
+  if (
+    resource &&
+    !["connections", "integrations", "subscriptions"].includes(root)
+  )
     id.parse(resource);
+  if (root === "subscriptions" && resource === "chatgpt") {
+    integrations.credentialOwner(ctx);
+    if (!action && method === "GET" && !localSubscriptionsEnabled())
+      return {
+        available: false,
+        localUrl: "http://127.0.0.1:3210/app?screen=connections",
+        message: "Use your ChatGPT subscription in MediaFlock on this Mac.",
+        profiles: [],
+        selectedId: null,
+      };
+    const runtime = chatgptRuntime();
+    if (!action && method === "GET") return runtime.status(ctx);
+    if (action === "begin" && method === "POST") {
+      const input = z
+        .object({
+          profileId: z.uuid().optional(),
+          enablePlanUsage: z.boolean().default(false),
+        })
+        .parse(body);
+      return runtime.begin(ctx, input.profileId, input.enablePlanUsage);
+    }
+    if (["attempt", "finalize", "cancel"].includes(action)) {
+      const input = z
+        .object({ attemptId: z.uuid() })
+        .parse(method === "GET" ? Object.fromEntries(query) : body);
+      if (action === "attempt" && method === "GET")
+        return runtime.attemptStatus(ctx, input.attemptId);
+      if (action === "finalize" && method === "POST")
+        return runtime.finalize(ctx, input.attemptId);
+      if (action === "cancel" && method === "POST")
+        return runtime.cancel(ctx, input.attemptId);
+    }
+    const input = z
+      .object({ profileId: z.uuid() })
+      .parse(method === "GET" ? Object.fromEntries(query) : body);
+    if (action === "models" && method === "GET")
+      return runtime.models(ctx, input.profileId);
+    if (action === "select" && method === "POST")
+      return runtime.select(ctx, input.profileId);
+    if (action === "disconnect" && method === "POST")
+      return runtime.disconnect(ctx, input.profileId);
+    if (action === "settings" && method === "PUT") {
+      const settings = z
+        .object({
+          model: z.string().min(1).max(100),
+          dailyTokenEstimate: z.number().int().min(1000).max(1000000),
+        })
+        .parse(body);
+      return runtime.settings(
+        ctx,
+        input.profileId,
+        settings.model,
+        settings.dailyTokenEstimate,
+      );
+    }
+    throw new DomainError(
+      "not_found",
+      "This connection action was not found.",
+      404,
+    );
+  }
   if (root === "password" && method === "POST") {
     integrations.credentialOwner(ctx);
     const input = z
@@ -351,7 +417,7 @@ export async function dispatch(
     if (resource && !action && method === "PUT")
       return integrations.saveIntegration(
         ctx,
-        z.enum(["openai", "postforme"]).parse(resource),
+        z.literal("postforme").parse(resource),
         body,
       );
     if (resource && !action && method === "DELETE")
@@ -362,7 +428,7 @@ export async function dispatch(
     if (resource && action === "check" && method === "POST")
       return integrations.checkIntegration(
         ctx,
-        z.enum(["openai", "postforme"]).parse(resource),
+        z.literal("postforme").parse(resource),
       );
   }
   if (root === "services") {
@@ -577,7 +643,12 @@ export async function handleApi(req: Request, path: string[]) {
         },
         { status: 400 },
       );
-    console.error(safeError(e));
+    console.error(
+      path[0] === "subscriptions"
+        ? "Subscription request failed: " +
+            (e instanceof DomainError ? e.code : "invalid_response")
+        : safeError(e),
+    );
     return Response.json(
       { error: publicError(e) },
       {

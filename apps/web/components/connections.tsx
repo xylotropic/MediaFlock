@@ -5,6 +5,7 @@ import { useApp, useLoad, useAction } from "./context";
 import { Header, ErrorNote, LocalTime } from "./ui";
 import { ConnectModal, IntegrationModal, ServiceModal } from "./screens";
 import { OperationStatus } from "./effects";
+import { SubscriptionConnections } from "./subscriptions";
 
 export function ConnectionsPage() {
   const { data, error } = useLoad("integrations"),
@@ -36,12 +37,6 @@ export function ConnectionsPage() {
             title: "Post for Me",
             description: "Publishing and social accounts",
             url: "https://www.postforme.dev",
-          },
-          {
-            id: "openai",
-            title: "OpenAI",
-            description: "Optional AI drafting",
-            url: "https://platform.openai.com/api-keys",
           },
         ].map((item) => {
           const entry = data?.entries.find((x: any) => x.service === item.id);
@@ -105,6 +100,7 @@ export function ConnectionsPage() {
             </article>
           );
         })}
+        <SubscriptionConnections />
         <article className="connection-row">
           <div className="grow">
             <h3>Supabase</h3>

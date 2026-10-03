@@ -108,9 +108,7 @@ export async function settings(ctx: Context) {
       ai:
         c.mode === "demo"
           ? "Deterministic fixture AI ready"
-          : process.env.OPENAI_API_KEY && process.env.OPENAI_MODEL
-            ? "Configured · live verification required"
-            : "Unavailable · manual editing available",
+          : "ChatGPT subscription · installed Mac owner only; configure in Connections",
       storage: "Private Supabase Storage",
       connection:
         c.mode === "demo"

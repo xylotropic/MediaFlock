@@ -12,6 +12,7 @@ export interface Context {
   scopes: string[];
   tokenId?: string;
   authSessionId?: string;
+  localInteractive?: boolean;
 }
 export type Tx = pg.PoolClient;
 let pool: pg.Pool | undefined;

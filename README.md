@@ -41,7 +41,7 @@ MEDIAFLOCK_ENV_FILE=.env.live pnpm worker
 
 For a persistent private macOS installation, run `pnpm service:install`. The installer creates a private versioned runtime in `~/Library/Application Support/MediaFlock`. Two LaunchAgents start the web app and worker when you log in. They read the copied `.env.live` and restart failed processes. Worker startup checks the installed parser image and can start the dedicated Colima profile on macOS. The web app binds to loopback. The Mac must remain awake.
 
-Configure Post for Me in Connections and save its fixed Project Redirect URL. Authorize your accounts and review their permissions. Enable approved publication explicitly. OpenAI is optional. Manual drafting works without it. These integrations use your own service accounts. The open source license does not include third-party service access or API usage.
+Configure Post for Me in Connections and save its fixed Project Redirect URL. Authorize your accounts and review their permissions. Enable approved publication explicitly. ChatGPT subscription drafting is optional and runs only in the installed owner’s local Mac session. Connect it in local Connections after the [subscription setup](docs/deployment.md#local-chatgpt-subscription). Manual drafting works without it. These integrations use your own service accounts. The open source license does not include third-party service access or API usage.
 
 ## Deploy the web app on Vercel
 

@@ -111,7 +111,7 @@ The Mac worker can keep its persistent session pooler connection and default `DB
 
 Inline `DATABASE_SSL_CA` avoids a missing certificate file in a Vercel function bundle. A Mac path in `DATABASE_SSL_CA_FILE` cannot work on Vercel. If you use a file instead, include it explicitly in the Next.js function traces and verify its runtime path.
 
-Keep server-wide `POSTFORME_API_KEY` and `OPENAI_API_KEY` empty when users supply their own integration keys. Without a workspace vault record, the application can fall back to these environment keys. Each workspace owner should configure their own services in Connections.
+Keep server-wide `POSTFORME_API_KEY` empty when users supply their own provider key. Each workspace owner configures Post for Me in Connections. Live AI drafting uses the local ChatGPT subscription flow below and never falls back to `OPENAI_API_KEY`.
 
 For the first public release:
 
@@ -186,3 +186,17 @@ For a Vercel rollback, restore the previous verified deployment and check its ac
 ## Other hosts
 
 On Linux, run the production web and worker commands under separate systemd units or an existing process supervisor. Use the repository as WorkingDirectory and a private environment file. Keep the worker independent of request lifetimes. A web service that stops between requests cannot replace it. The macOS helper does not install Linux services.
+
+## Local ChatGPT subscription
+
+Use the official [Sign in with ChatGPT registration flow](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) and [plan preview limits](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations). Subscription use is available only in the installed Mac web process bound to 127.0.0.1. It requires the installed owner's authenticated local browser session. Vercel, workers, API tokens, other workspaces, and other users cannot open the local credential vault or start inference.
+
+Run `pnpm setup:subscriptions --owner-record /absolute/path/to/private-owner-record.json` with the previously verified administrator provision record containing userId, workspaceId, and email. It must be an owner-only file. Setup validates that identity against the live database, compiles MediaFlock's own keychain helper, creates a separate local encryption key, and preserves a stable host ID. It never assigns installation ownership from the first HTTP caller. An existing different binding fails without changing stored connections.
+
+Set `MEDIAFLOCK_LOCAL_SUBSCRIPTIONS=true` only in the Mac's private environment. The installed web and worker services receive separate process-role values; only the web role can use subscriptions. Build and install the reviewed release. Open Connections locally, choose Continue with ChatGPT, complete the native account and plan-consent screen in Chrome, return to MediaFlock, and choose an available model. The identity-verified callback stays in memory until the same authenticated local session finalizes it. Never copy credentials from Codex, a browser profile, or the cloud credential vault.
+
+Local encrypted state is in the Mac Application Support subscriptions directory, with owner-only permissions. Its key is in the login keychain. Tokens never enter cloud rows, logs, URLs, or browser storage. Disconnect clears local credentials and reports whether remote session revocation was confirmed. It preserves the issued client/identity mapping for reconnecting. A stale process lock is not automatically deleted: stop the local service, verify the recorded process is dead, remove only that installation's session.lock directory, and restart. Preserve the encrypted vault and binding.
+
+Drafting has no automatic retries or paid API fallback. Daily estimates reserve context plus response allowance; unknown usage remains reserved even on failure. These estimates and the bounded stream are not guaranteed provider token caps. Actual allowance and permission to use extra credits are managed in [ChatGPT settings](https://chatgpt.com/settings/usage). This flow supports text drafting, not transcription, audio/video inputs, or image generation. Manual editing remains available. ElevenLabs is a website handoff until the owner selects and authorizes a supported subscription-credit connection.
+
+Token renewal distinguishes temporary pre-transmission outages, client configuration errors, confirmed unusable grants, and uncertain rotation. Explicit reduced plan scopes replace the old grant atomically while inference stays disabled. Enable plan usage is an explicit local action that requests consent with the retained client. Ordinary reconnect does not force consent. Ambiguous rotation is never automatically replayed, and unconfirmed remote revocation is reported even after local tokens have been cleared.
