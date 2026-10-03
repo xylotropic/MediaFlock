@@ -12,7 +12,7 @@
 - [x] Versioned API, scoped/revocable tokens, OpenAPI, real MCP protocol and example client.
 - [x] Minimal branded interface, Instrument Serif, three-wing mark, animated/collapsible sidebar, actual EvilCharts component.
 - [x] Nine desktop/mobile navigation screens; Connections and encrypted service-key controls.
-- [x] 49 unit/database/provider/security/recovery tests pass.
+- [x] 50 unit/database/provider/security/recovery tests pass.
 - [x] Isolated Chrome journey: 15 steps, 21 screenshots, zero console/HTTP errors.
 - [x] Real production read-only Chrome check: 20 screenshots, Auth/Storage/worker, restart persistence and served-asset hashes.
 - [x] Lint, type checks and optimized production build pass.

@@ -86,6 +86,38 @@ beforeAll(async () => {
 }, 30000);
 afterAll(closeDb);
 describe("Real local database, authorization and immutable content", () => {
+  it("returns actionable validation when a draft hides unapproved platform content", async () => {
+    const { pkg } = await draft(a.ctx, a.account.id);
+    const variant = await domain.createVariant(a.ctx, {
+      packageId: pkg!.id,
+      accountId: a.account.id,
+      format: "text",
+      payload: {
+        hook: "Approved field",
+        caption: "Visible draft",
+        settings: { caption: "Hidden override" },
+      },
+    });
+    const token = await createToken(a.ctx, {
+      name: "Validation boundary",
+      scopes: ["request_approval"],
+      expiresAt: new Date(Date.now() + 3600000).toISOString(),
+    });
+    const result = await api(
+      token.secret,
+      "variants/" + variant.id + "/request-approval",
+      "POST",
+      {
+        revisionId: variant.current_revision_id,
+        scheduledAt: new Date(Date.now() + 3600000).toISOString(),
+      },
+    );
+    expect(result.status).toBe(400);
+    expect((await result.json()).error).toMatchObject({
+      code: "invalid_media_or_settings",
+      message: expect.stringContaining("dedicated fields"),
+    });
+  });
   it("persists content and immutable edits through new DB connections", async () => {
     const { pkg, variant } = await draft(a.ctx, a.account.id);
     const edited = await domain.editVariant(

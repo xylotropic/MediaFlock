@@ -1,9 +1,10 @@
 import { scoped, one, audit, type Context, type Tx } from "../db";
 import { authorize, humanReviewer, contentHash } from "./auth";
-import { requireCondition } from "./errors";
+import { requireCondition, DomainError } from "./errors";
 import { approvalInput } from "../schemas";
 import { effectiveSettings } from "../publishing/validation";
 import type { DeliveryEnvelope } from "../publishing/provider";
+import { ProviderError } from "../publishing/provider";
 import { integrationFingerprint } from "./integrations";
 import { getConfig } from "./config";
 export async function snapshotFor(
@@ -68,10 +69,16 @@ export async function snapshotFor(
     scheduledAt: new Date(scheduledAt).toISOString(),
     provenance: account.provenance,
   };
-  return {
-    ...snapshot,
-    effectiveSettings: effectiveSettings(snapshot as DeliveryEnvelope),
-  };
+  try {
+    return {
+      ...snapshot,
+      effectiveSettings: effectiveSettings(snapshot as DeliveryEnvelope),
+    };
+  } catch (error) {
+    if (error instanceof ProviderError && error.classification === "validation")
+      throw new DomainError("invalid_media_or_settings", error.message, 400);
+    throw error;
+  }
 }
 export async function requestApproval(ctx: Context, input: unknown) {
   authorize(ctx, "request_approval");
