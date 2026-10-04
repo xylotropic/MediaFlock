@@ -335,7 +335,7 @@ try {
   await page.getByLabel("Analytics measurement view").selectOption("changes");
   await expect(
     page.getByRole("columnheader", {
-      name: "Change in views",
+      name: "Net counter change",
       exact: true,
     }),
   ).toBeVisible();
