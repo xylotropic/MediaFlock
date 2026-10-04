@@ -7,9 +7,12 @@ import {
   SquarePen,
   ShieldCheck,
 } from "lucide-react";
-import { ShaderOrb } from "./shader-orb";
+import dynamic from "next/dynamic";
+import { ThinkingOrb } from "thinking-orbs";
 import { PlatformMark, socialPlatforms } from "./platform-mark";
 import styles from "./landing.module.css";
+
+const LandingCharts = dynamic(() => import("./landing-charts"), { ssr: false });
 
 export function LandingFeatures({ paused }: { paused: boolean }) {
   return (
@@ -19,12 +22,13 @@ export function LandingFeatures({ paused }: { paused: boolean }) {
       aria-labelledby="features-title"
     >
       <div className={styles.featureHeading}>
-        <span className={styles.eyebrow}>Room for your next idea</span>
         <h2 id="features-title">Create with a little more clarity.</h2>
         <p>From the first draft to the next post, keep the details together.</p>
       </div>
       <div className={styles.featureGrid}>
-        <article className={`${styles.featureCard} ${styles.wideCard}`}>
+        <article
+          className={`${styles.featureCard} ${styles.wideCard} ${styles.createCard}`}
+        >
           <div
             className={`${styles.featureVisual} ${styles.createVisual}`}
             aria-hidden="true"
@@ -74,9 +78,11 @@ export function LandingFeatures({ paused }: { paused: boolean }) {
                 <PlatformMark icon={socialPlatforms[5].icon} />
               </div>
             </div>
-            <ShaderOrb
-              variant="compose"
-              size={76}
+            <ThinkingOrb
+              state="composing"
+              size={64}
+              theme="light"
+              color="#7056d8"
               paused={paused}
               className={styles.composeOrb}
             />
@@ -90,14 +96,16 @@ export function LandingFeatures({ paused }: { paused: boolean }) {
           </div>
         </article>
 
-        <article className={styles.featureCard}>
+        <article className={`${styles.featureCard} ${styles.scheduleCard}`}>
           <div
             className={`${styles.featureVisual} ${styles.scheduleVisual}`}
             aria-hidden="true"
           >
-            <ShaderOrb
-              variant="process"
-              size={92}
+            <ThinkingOrb
+              state="working"
+              size={64}
+              theme="light"
+              color="#c45f42"
               paused={paused}
               className={styles.processOrb}
             />
@@ -132,7 +140,7 @@ export function LandingFeatures({ paused }: { paused: boolean }) {
           </div>
         </article>
 
-        <article className={styles.featureCard}>
+        <article className={`${styles.featureCard} ${styles.privateCard}`}>
           <div
             className={`${styles.featureVisual} ${styles.privateVisual}`}
             aria-hidden="true"
@@ -141,7 +149,16 @@ export function LandingFeatures({ paused }: { paused: boolean }) {
             <div className={styles.vaultRing} />
             <div className={styles.vaultRingOuter} />
             <div className={styles.vault}>
-              <LockKeyhole size={32} strokeWidth={1.3} />
+              <ThinkingOrb
+                state="connecting"
+                size={64}
+                theme="light"
+                color="#19836f"
+                paused={paused}
+              />
+              <span className={styles.vaultLock}>
+                <LockKeyhole size={21} strokeWidth={1.5} />
+              </span>
             </div>
             <span className={styles.vaultFile}>
               <ShieldCheck size={14} />
@@ -158,44 +175,23 @@ export function LandingFeatures({ paused }: { paused: boolean }) {
           </div>
         </article>
 
-        <article className={`${styles.featureCard} ${styles.wideCard}`}>
-          <div
-            className={`${styles.featureVisual} ${styles.insightsVisual}`}
-            aria-hidden="true"
-          >
-            <div className={styles.activityPanel}>
-              <span>Activity</span>
-              <div className={styles.activityBars}>
-                {[34, 58, 42, 76, 61, 88, 72].map((height, index) => (
-                  <i
-                    key={index}
-                    style={{
-                      height: `${height}%`,
-                      animationDelay: `${index * -0.4}s`,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className={styles.accountPanel}>
-              <span>Account view</span>
-              {socialPlatforms.slice(0, 3).map((platform, index) => (
-                <div key={platform.name}>
-                  <PlatformMark icon={platform.icon} />
-                  <span>{platform.name}</span>
-                  <i style={{ width: `${68 - index * 15}px` }} />
-                </div>
-              ))}
-            </div>
-            <div className={styles.deliveryPanel}>
+        <article
+          className={`${styles.featureCard} ${styles.wideCard} ${styles.insightsCard}`}
+        >
+          <div className={`${styles.featureVisual} ${styles.insightsVisual}`}>
+            <LandingCharts paused={paused} />
+            <div className={styles.deliveryPanel} aria-hidden="true">
               <Check size={14} />
               <span>Delivery</span>
               <i />
               <i />
             </div>
-            <ShaderOrb
-              variant="insights"
-              size={80}
+            <ThinkingOrb
+              state="searching"
+              size={64}
+              theme="light"
+              color="#387ccc"
+              aria-hidden="true"
               paused={paused}
               className={styles.insightsOrb}
             />

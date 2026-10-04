@@ -1,3 +1,9 @@
+/* Match the canvas exposed by top and bottom rubber-band scrolling. */
+:global(html):has(.landing),
+:global(body):has(.landing) {
+  background: #fff;
+}
+
 .landing {
   --landing-border: var(--line, #e7e7e7);
   --landing-muted: var(--muted, #737373);
@@ -84,6 +90,7 @@
 }
 
 .heroArt {
+  --orbit-radius: 150px;
   position: relative;
   height: 390px;
   width: 100%;
@@ -138,8 +145,23 @@
 .heroOrb > * {
   position: relative;
 }
+.heroSatellites {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 0;
+  height: 0;
+  animation: ringTurn 90s linear infinite;
+}
+.heroSatellite {
+  position: absolute;
+  transform: rotate(var(--angle)) translateX(var(--orbit-radius))
+    rotate(calc(-1 * var(--angle)));
+}
 .heroPlatform {
   position: absolute;
+  left: -26px;
+  top: -26px;
   display: grid;
   place-items: center;
   width: 52px;
@@ -148,25 +170,11 @@
   border: 1px solid #e8e8e8;
   border-radius: 12px;
   box-shadow: 0 8px 24px #00000006;
-  animation: float 7s ease-in-out infinite;
+  animation: ringTurn 90s linear infinite reverse;
 }
 .heroPlatform svg {
   width: 24px;
   height: 24px;
-}
-.heroYoutube {
-  left: calc(50% - 173px);
-  top: calc(46% - 26px);
-  animation-delay: -2s;
-}
-.heroInstagram {
-  left: calc(50% + 71px);
-  top: calc(46% - 148px);
-  animation-delay: -4s;
-}
-.heroTiktok {
-  left: calc(50% + 71px);
-  top: calc(46% + 96px);
 }
 .heroArtLabel {
   position: absolute;
@@ -286,7 +294,8 @@
   border: 1px solid var(--landing-border);
   border-radius: 14px;
   overflow: hidden;
-  background: linear-gradient(180deg, #fafafa 0%, #fff 75%);
+  background: var(--card-surface, #fff);
+  border-color: var(--card-line, var(--landing-border));
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -300,10 +309,36 @@
   overflow: hidden;
   flex-shrink: 0;
 }
-.createVisual,
-.scheduleVisual,
-.insightsVisual {
-  background: radial-gradient(ellipse at 50% 30%, #f5f5f5, transparent 70%);
+.createCard {
+  --card-surface: #f7f4ff;
+  --card-glow: #d9ceff;
+  --card-line: #e4dcf5;
+  --card-accent: #7056d8;
+}
+.scheduleCard {
+  --card-surface: #fff7f1;
+  --card-glow: #fbd6be;
+  --card-line: #f0e0d5;
+  --card-accent: #c45f42;
+}
+.privateCard {
+  --card-surface: #f1faf6;
+  --card-glow: #bce8d8;
+  --card-line: #d5eae2;
+  --card-accent: #19836f;
+}
+.insightsCard {
+  --card-surface: #f1f7ff;
+  --card-glow: #c6ddf8;
+  --card-line: #d7e4f4;
+  --card-accent: #387ccc;
+}
+.featureVisual {
+  background: radial-gradient(
+    ellipse at 50% 30%,
+    var(--card-glow),
+    transparent 75%
+  );
 }
 .featureCopy {
   padding: 21px 27px 28px;
@@ -328,7 +363,7 @@
   position: absolute;
   inset: auto 0 0;
   height: 30px;
-  background: linear-gradient(transparent, #fff);
+  background: linear-gradient(transparent, var(--card-surface));
   pointer-events: none;
   z-index: 5;
 }
@@ -339,7 +374,7 @@
   height: 240px;
 }
 .connectors path {
-  stroke: #dedede;
+  stroke: #b9aad9;
   stroke-width: 1;
 }
 .mediaTile {
@@ -376,7 +411,7 @@
   height: 96px;
   margin: 0 9px;
   border-radius: 6px;
-  background: #f1f1f1;
+  background: #eee8ff;
   overflow: hidden;
   position: relative;
 }
@@ -387,18 +422,18 @@
   left: -12px;
   top: 24px;
   border-radius: 50%;
-  background: #c7c7c7;
+  background: #b5a2ef;
   transform: rotate(-34deg);
 }
 .videoArtwork i:nth-child(2) {
   left: 48px;
   top: 57px;
-  background: #5e5e5e;
+  background: #7056d8;
 }
 .videoArtwork i:nth-child(3) {
   left: 76px;
   top: 13px;
-  background: #b0b0b0;
+  background: #d4c6fa;
 }
 .tileLines {
   display: grid;
@@ -429,7 +464,7 @@
 .portraitArtwork {
   height: 148px;
   margin: 8px 8px 0;
-  background: #dedede;
+  background: #e3dafa;
   border-radius: 6px;
   position: relative;
   overflow: hidden;
@@ -440,7 +475,7 @@
   width: 66px;
   height: 146px;
   border-radius: 80px;
-  background: #909090;
+  background: #9c82df;
   top: 51px;
   left: 45px;
   transform: rotate(24deg);
@@ -486,8 +521,7 @@
 .processOrb {
   position: absolute !important;
   top: 21px;
-  left: calc(50% - 46px);
-  opacity: 0.8;
+  left: calc(50% - 32px);
 }
 .queueItem {
   position: absolute;
@@ -517,22 +551,23 @@
 .queueDraft {
   top: 75px;
   transform: translateX(-16px) rotate(-6deg);
-  color: #888;
+  color: #ac7654;
 }
 .queueReview {
   top: 126px;
   transform: translateX(10px) rotate(3deg);
   animation-delay: -2.3s;
-  color: #666;
+  color: #a35e43;
 }
 .queueScheduled {
+  color: var(--card-accent);
   top: 176px;
   transform: translateX(-3px) rotate(-2deg);
   animation-delay: -4.6s;
 }
 .queueScheduled i {
   width: 91%;
-  background: #bdbdbd;
+  background: #e0a487;
 }
 
 .privateVisual {
@@ -553,7 +588,7 @@
   position: absolute;
   width: 144px;
   height: 144px;
-  border: 1px solid #e3e3e3;
+  border: 1px solid #b7d8cd;
   border-radius: 50%;
   top: 36px;
 }
@@ -565,18 +600,25 @@
   animation: ringTurn 60s linear infinite;
 }
 .vault {
+  position: relative;
   width: 88px;
   height: 88px;
-  background: radial-gradient(circle at 28% 22%, #fff 5%, #eeeeee 55%, #d4d4d4);
-  box-shadow:
-    inset 0 0 0 1px #fff,
-    0 8px 25px #00000008;
-  border: 1px solid #ddd;
-  border-radius: 50%;
   display: grid;
   place-items: center;
-  color: #555;
   margin-top: -34px;
+}
+.vaultLock {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  background: var(--card-surface);
+  border: 1px solid var(--card-line);
+  border-radius: 10px;
+  color: var(--card-accent);
 }
 .vaultFile {
   position: absolute;
@@ -615,70 +657,61 @@
   border-radius: 10px;
   box-shadow: 0 10px 26px #00000005;
 }
+.chartScene {
+  position: absolute;
+  inset: 0;
+}
 .activityPanel {
-  width: 226px;
-  height: 166px;
+  width: 260px;
+  height: 173px;
   top: 41px;
-  left: calc(50% - 247px);
-  padding: 16px;
+  left: calc(50% - 255px);
+  padding: 13px;
   transform: rotate(-5deg);
 }
-.activityPanel > span,
-.accountPanel > span {
-  display: block;
-  font-size: 10px;
-  color: #999;
-}
-.activityBars {
-  height: 101px;
-  margin-top: 14px;
+.chartHeading {
   display: flex;
-  align-items: end;
-  gap: 10px;
-  padding-top: 7px;
-  border-bottom: 1px solid #e8e8e8;
-  background: repeating-linear-gradient(
-    to top,
-    transparent 0 27px,
-    #f0f0f0 27px 28px
-  );
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 10px;
+  color: #64617a;
 }
-.activityBars i {
-  width: 19px;
-  background: linear-gradient(#949494, #dcdcdc);
-  border-radius: 3px 3px 0 0;
-  transform-origin: bottom;
-  animation: chartBreathe 7s ease-in-out infinite;
+.chartHeading button {
+  background: #f1edff;
+  color: #6b52b8;
+  border: 1px solid #e1d8f8;
+  border-radius: 5px;
+  padding: 4px 6px;
+  min-height: 28px;
+  cursor: pointer;
+  font: inherit;
+}
+.chartHeading button:hover {
+  background: #e5ddfa;
+}
+.activityChart {
+  height: 118px;
+  width: 100%;
+  margin-top: 4px;
 }
 .accountPanel {
-  width: 252px;
-  top: 64px;
-  left: calc(50% - 16px);
-  padding: 17px;
+  width: 225px;
+  top: 74px;
+  left: calc(50% + 6px);
+  padding: 15px;
   transform: rotate(5deg);
   z-index: 2;
 }
 .accountPanel > span {
-  margin-bottom: 13px;
-}
-.accountPanel > div {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: 13px;
+  display: block;
   font-size: 10px;
-  color: #666;
+  color: #57747d;
+  margin-bottom: 8px;
 }
-.accountPanel svg {
-  width: 14px;
-  height: 14px;
-  color: #222;
-}
-.accountPanel > div > i {
-  height: 4px;
-  border-radius: 4px;
-  background: #ccc;
-  margin-left: auto;
+.platformChart {
+  width: 100%;
+  height: 92px;
 }
 .deliveryPanel {
   top: 199px;
@@ -704,9 +737,10 @@
   background: #eaeaea;
 }
 .insightsOrb {
+  pointer-events: none;
   position: absolute !important;
   top: 12px;
-  left: calc(50% - 50px);
+  left: calc(50% - 32px);
   z-index: 4;
 }
 
@@ -810,6 +844,7 @@
     font-size: 14px;
   }
   .heroArt {
+    --orbit-radius: 115px;
     height: 320px;
   }
   .heroOrbit {
@@ -819,17 +854,6 @@
   .heroOrbitInner {
     width: 142px;
     height: 142px;
-  }
-  .heroYoutube {
-    left: calc(50% - 141px);
-  }
-  .heroInstagram {
-    left: calc(50% + 45px);
-    top: calc(46% - 126px);
-  }
-  .heroTiktok {
-    left: calc(50% + 45px);
-    top: calc(46% + 74px);
   }
   .platforms {
     padding: 0 28px 58px;
@@ -1008,31 +1032,30 @@
     top: 157px;
   }
   .activityPanel {
-    width: 176px;
-    height: 149px;
-    left: calc(50% - 169px);
+    width: calc(54% - 18px);
+    height: 158px;
+    left: 12px;
     top: 48px;
-    padding: 14px;
+    padding: 9px;
   }
-  .activityBars {
-    gap: 7px;
-    height: 90px;
+  .chartHeading {
+    font-size: 8px;
   }
-  .activityBars i {
-    width: 15px;
+  .chartHeading button {
+    padding: 3px 4px;
+  }
+  .activityChart {
+    height: 112px;
   }
   .accountPanel {
-    width: 188px;
-    left: calc(50% - 1px);
-    top: 64px;
-    padding: 14px;
+    width: calc(46% - 10px);
+    left: auto;
+    right: 10px;
+    top: 68px;
+    padding: 10px 6px;
   }
-  .accountPanel > div {
-    font-size: 9px;
-    gap: 5px;
-  }
-  .accountPanel > div > i {
-    max-width: 44px;
+  .accountPanel > span {
+    font-size: 8px;
   }
   .deliveryPanel {
     top: 186px;
@@ -1040,7 +1063,7 @@
     width: 180px;
   }
   .insightsOrb {
-    left: calc(50% - 40px);
+    left: calc(50% - 32px);
     top: 9px;
   }
 }

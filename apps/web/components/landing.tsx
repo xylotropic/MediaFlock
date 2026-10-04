@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { ThinkingOrb } from "thinking-orbs";
 import { Brand } from "./ui";
@@ -64,15 +65,22 @@ export function Landing() {
             <div className={styles.heroGrid} />
             <div className={styles.heroOrbit} />
             <div className={styles.heroOrbitInner} />
-            <span className={`${styles.heroPlatform} ${styles.heroYoutube}`}>
-              <PlatformMark icon={socialPlatforms[0].icon} />
-            </span>
-            <span className={`${styles.heroPlatform} ${styles.heroInstagram}`}>
-              <PlatformMark icon={socialPlatforms[1].icon} />
-            </span>
-            <span className={`${styles.heroPlatform} ${styles.heroTiktok}`}>
-              <PlatformMark icon={socialPlatforms[2].icon} />
-            </span>
+            <div className={styles.heroSatellites}>
+              {socialPlatforms.map((platform, index) => (
+                <div
+                  key={platform.name}
+                  className={styles.heroSatellite}
+                  style={{ "--angle": `${index * 60}deg` } as CSSProperties}
+                >
+                  <span
+                    className={styles.heroPlatform}
+                    data-platform={platform.name}
+                  >
+                    <PlatformMark icon={platform.icon} />
+                  </span>
+                </div>
+              ))}
+            </div>
             <div className={styles.heroOrb}>
               <ThinkingOrb
                 state="composing"
