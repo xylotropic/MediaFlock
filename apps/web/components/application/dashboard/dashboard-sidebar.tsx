@@ -179,7 +179,7 @@ export function DashboardSidebar({
       data-boardui-sidebar
       className={cx(
         "sidebar board-sidebar flex shrink-0 flex-col justify-between overflow-hidden rounded-3xl border border-border-button-white bg-background-secondary-default shadow-sidebar transition-[width] duration-300 ease-in-out",
-        collapsed ? "collapsed w-[60px] px-[11px] py-3" : "w-[260px] p-3",
+        collapsed ? "collapsed w-[60px] px-[11px] py-3" : "w-[224px] p-3",
         mobileOpen && "open",
       )}
       aria-label="Workspace navigation"

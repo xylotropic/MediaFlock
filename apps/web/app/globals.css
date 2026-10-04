@@ -2838,8 +2838,8 @@ html {
   background: #fafbfc;
 }
 .app .shell {
-  margin-left: 292px;
-  width: calc(100% - 292px);
+  margin-left: 256px;
+  width: calc(100% - 256px);
   min-width: 0;
   transition:
     margin-left 300ms ease,
@@ -2918,7 +2918,7 @@ button.nav-backdrop[data-boardui] {
   }
   .board-sidebar,
   .board-sidebar.collapsed {
-    width: 260px;
+    width: 224px;
     padding: 12px;
     transform: translateX(-300px);
     transition: transform 250ms ease;
