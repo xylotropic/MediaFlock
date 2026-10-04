@@ -883,6 +883,7 @@
     min-height: 80px;
     padding: 19px 22px;
     gap: 14px;
+    flex-wrap: wrap;
   }
   .navigation > a {
     font-size: 20px;
@@ -898,6 +899,7 @@
   .navigation nav {
     gap: 15px;
     font-size: 12px;
+    margin-left: auto;
   }
   .featuresLink {
     display: none;
