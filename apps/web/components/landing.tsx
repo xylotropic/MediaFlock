@@ -1,4 +1,5 @@
 "use client";
+import { ButtonLink } from "./base/buttons/button";
 
 import Link from "next/link";
 import type { CSSProperties } from "react";
@@ -29,10 +30,14 @@ export function Landing() {
             Features
           </a>
           <Link href="/signin">Sign in</Link>
-          <Link href="/app" className="btn primary">
+          <ButtonLink
+            trailingIcon={ArrowUpRight}
+            variant="primary"
+            href="/app"
+            className=""
+          >
             Open MediaFlock
-            <ArrowUpRight size={14} />
-          </Link>
+          </ButtonLink>
         </nav>
       </header>
 
@@ -51,14 +56,21 @@ export function Landing() {
               brands trying to scale.
             </p>
             <div className={styles.actions}>
-              <Link href="/signup" className="btn primary">
+              <ButtonLink
+                trailingIcon={ArrowRight}
+                variant="primary"
+                href="/signup"
+                className=""
+              >
                 Create your account
-                <ArrowRight size={16} />
-              </Link>
-              <Link href="/app" className={styles.secondaryLink}>
+              </ButtonLink>
+              <ButtonLink
+                href="/app"
+                variant="ghost"
+                trailingIcon={ArrowUpRight}
+              >
                 Open MediaFlock
-                <ArrowUpRight size={15} />
-              </Link>
+              </ButtonLink>
             </div>
           </div>
           <div className={styles.heroArt} aria-hidden="true">

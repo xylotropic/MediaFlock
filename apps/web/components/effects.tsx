@@ -1,9 +1,9 @@
 "use client";
+import { Button } from "./base/buttons/button";
 import { useSyncExternalStore, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { ThinkingOrb, type OrbState } from "thinking-orbs";
 import { BorderBeam } from "border-beam";
-import { Liquid } from "liquid-gooey";
 import { motion } from "motion/react";
 const MetalFx = dynamic(() => import("metal-fx").then((m) => m.MetalFx), {
   ssr: false,
@@ -98,73 +98,29 @@ export function FocusBeam({
     </BorderBeam>
   );
 }
-export function LiquidTabs({
-  options,
+export function SegmentedTabs({
   value,
+  options,
   onChange,
-  label,
+  label = "View",
 }: {
-  options: { value: string; label: string }[];
   value: string;
+  options: { value: string; label: string }[];
   onChange: (value: string) => void;
-  label: string;
+  label?: string;
 }) {
-  const reduced = useReducedMotion(),
-    index = Math.max(
-      0,
-      options.findIndex((x) => x.value === value),
-    ),
-    width = 104;
   return (
-    <div
-      className="liquid-tabs"
-      role="group"
-      aria-label={label}
-      style={{ width: options.length * width + 8 }}
-    >
-      <Liquid
-        fill="#1b1b1b"
-        blur={4}
-        contrast={18}
-        shadow="0 1px 2px rgba(0,0,0,.06)"
-        style={{
-          width: options.length * width,
-          height: 32,
-          pointerEvents: "none",
-          position: "absolute",
-          left: 4,
-          top: 4,
-        }}
-        aria-hidden="true"
-      >
-        <Liquid.Item
-          effect={reduced ? "morph" : "move"}
-          x={index * width}
-          transition={{ duration: reduced ? 0 : 220, ease: "ease-out" }}
-          move={{
-            stretch: 0.035,
-            trail: 0,
-            wobble: 0.05,
-            advanced: { force: 0, bend: 0, bendX: 0 },
-          }}
+    <div className="board-segmented-tabs" role="group" aria-label={label}>
+      {options.map((option) => (
+        <Button
+          key={option.value}
+          variant={option.value === value ? "primary" : "ghost"}
+          aria-pressed={option.value === value}
+          onClick={() => onChange(option.value)}
         >
-          <div style={{ height: 32, width, borderRadius: 5 }} />
-        </Liquid.Item>
-      </Liquid>
-      <div className="liquid-tabs-labels">
-        {options.map((option) => (
-          <button
-            type="button"
-            key={option.value}
-            aria-pressed={option.value === value}
-            className={option.value === value ? "active" : ""}
-            style={{ width }}
-            onClick={() => onChange(option.value)}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+          {option.label}
+        </Button>
+      ))}
     </div>
   );
 }

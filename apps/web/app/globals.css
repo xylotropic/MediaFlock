@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "../styles/theme.css";
+@import "../styles/typography.css";
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant rtl (&:dir(rtl));
+@custom-variant ltr (&:dir(ltr));
 :root {
   --ink: #171717;
   --muted: #737373;
@@ -19,20 +24,20 @@ body {
   font-size: 14px;
   line-height: 1.5;
 }
-button,
+button:not([data-boardui]),
 input,
 textarea,
 select {
   font: inherit;
 }
-button,
+button:not([data-boardui]),
 a,
 input,
 select,
 textarea {
   outline-offset: 4px;
 }
-button:focus-visible,
+button:not([data-boardui]):focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
@@ -42,11 +47,11 @@ select:focus-visible {
 button {
   cursor: pointer;
 }
-button:disabled {
+button:not([data-boardui]):disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
-a {
+a:not([data-boardui]) {
   color: inherit;
   text-decoration: none;
 }
@@ -188,7 +193,7 @@ h3 {
   display: flex;
   min-height: 100vh;
 }
-.sidebar {
+.sidebar:not([data-boardui-sidebar]) {
   position: fixed;
   inset: 0 auto 0 0;
   width: 224px;
@@ -210,7 +215,7 @@ h3 {
 .brand svg {
   flex: none;
 }
-.sidebar .brand {
+.sidebar:not([data-boardui-sidebar]) .brand {
   padding: 0 11px;
 }
 .workspace-chip {
@@ -566,7 +571,7 @@ tbody tr:hover {
   gap: 24px;
   margin: 0 0 24px;
 }
-.tabs button {
+.tabs button:not([data-boardui]) {
   padding: 11px 0;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -574,7 +579,7 @@ tbody tr:hover {
   color: #888;
   font-size: 12px;
 }
-.tabs button.active {
+.tabs button:not([data-boardui]).active {
   color: #171717;
   border-bottom-color: #171717;
 }
@@ -1123,7 +1128,7 @@ tbody tr:hover {
   .topbar {
     padding-left: 50px;
   }
-  .sidebar {
+  .sidebar:not([data-boardui-sidebar]) {
     width: 240px;
   }
   .shell {
@@ -1156,7 +1161,7 @@ tbody tr:hover {
   .calendar-day {
     padding: 8px 5px;
   }
-  .sidebar {
+  .sidebar:not([data-boardui-sidebar]) {
     width: 200px;
   }
   .shell {
@@ -1168,12 +1173,12 @@ tbody tr:hover {
   h1 {
     font-size: 26px;
   }
-  .sidebar {
+  .sidebar:not([data-boardui-sidebar]) {
     transform: translateX(-100%);
     transition: transform 0.18s;
     width: 224px;
   }
-  .sidebar.open {
+  .sidebar:not([data-boardui-sidebar]).open {
     transform: translateX(0);
   }
   .nav-backdrop {
@@ -1261,7 +1266,7 @@ tbody tr:hover {
     gap: 20px;
     overflow-x: auto;
   }
-  .tabs button {
+  .tabs button:not([data-boardui]) {
     white-space: nowrap;
   }
   .calendar-grid {
@@ -1478,7 +1483,7 @@ tbody tr:hover {
     opacity: 1;
   }
 }
-.sidebar {
+.sidebar:not([data-boardui-sidebar]) {
   background: #121212;
 }
 .nav button.selected {
@@ -1598,7 +1603,7 @@ tbody tr:hover {
 }
 
 @media (max-height: 800px) {
-  .sidebar {
+  .sidebar:not([data-boardui-sidebar]) {
     padding-top: 20px;
     padding-bottom: 14px;
     overflow-y: auto;
@@ -1632,7 +1637,7 @@ tbody tr:hover {
   --line: #e5e5e5;
   --font-display: var(--font-instrument-serif), Georgia, serif;
 }
-.sidebar {
+.sidebar:not([data-boardui-sidebar]) {
   background: #000;
   padding-top: 34px;
 }
@@ -2038,7 +2043,7 @@ h2,
   background: #f1f1f1;
   border: 1px solid #e7e7e7;
 }
-.calendar-view button {
+.calendar-view button:not([data-boardui]) {
   min-width: 76px;
   min-height: 34px;
   padding: 7px 16px;
@@ -2048,7 +2053,7 @@ h2,
   color: #666;
   font-size: 12px;
 }
-.calendar-view button[aria-pressed="true"] {
+.calendar-view button:not([data-boardui])[aria-pressed="true"] {
   background: #1b1b1b;
   color: #fff;
   box-shadow: 0 1px 3px #00000014;
@@ -2163,7 +2168,7 @@ h2,
   .calendar-view {
     flex: 1;
   }
-  .calendar-view button {
+  .calendar-view button:not([data-boardui]) {
     flex: 1;
   }
   .calendar-filters {
@@ -2237,7 +2242,7 @@ h2,
 .observation-chart [data-chart] {
   height: 100%;
 }
-.sidebar {
+.sidebar:not([data-boardui-sidebar]) {
   transition: width 180ms ease-out;
 }
 .shell {
@@ -2281,41 +2286,44 @@ h2,
   background: #1e1e1e;
 }
 .sidebar-collapse:focus-visible,
-.sidebar .nav button:focus-visible {
+.sidebar:not([data-boardui-sidebar]) .nav button:focus-visible {
   outline: 1px solid #aaa;
   outline-offset: -1px;
 }
-.sidebar .nav {
+.sidebar:not([data-boardui-sidebar]) .nav {
   margin-top: 15px;
 }
-.sidebar.collapsed {
+.sidebar:not([data-boardui-sidebar]).collapsed {
   width: 72px;
   padding-inline: 12px;
 }
-.sidebar.collapsed .sidebar-brand {
+.sidebar:not([data-boardui-sidebar]).collapsed .sidebar-brand {
   display: none;
 }
-.sidebar.collapsed .sidebar-header {
+.sidebar:not([data-boardui-sidebar]).collapsed .sidebar-header {
   justify-content: center;
   margin-inline: 0;
 }
-.sidebar.collapsed .sidebar-collapse {
+.sidebar:not([data-boardui-sidebar]).collapsed .sidebar-collapse {
   flex-shrink: 0;
   width: 36px;
   height: 36px;
 }
-.sidebar.collapsed .nav button {
+.sidebar:not([data-boardui-sidebar]).collapsed .nav button {
   justify-content: center;
   padding-inline: 0;
 }
-.sidebar.collapsed .nav button > span:not(.nav-selection) {
+.sidebar:not([data-boardui-sidebar]).collapsed
+  .nav
+  button
+  > span:not(.nav-selection) {
   display: none;
 }
-.sidebar.collapsed .profile .grow,
-.sidebar.collapsed .profile > button {
+.sidebar:not([data-boardui-sidebar]).collapsed .profile .grow,
+.sidebar:not([data-boardui-sidebar]).collapsed .profile > button {
   display: none;
 }
-.sidebar.collapsed .profile {
+.sidebar:not([data-boardui-sidebar]).collapsed .profile {
   justify-content: center;
   padding-inline: 0;
 }
@@ -2342,25 +2350,28 @@ h2,
   .sidebar-collapse {
     display: none;
   }
-  .sidebar.collapsed {
+  .sidebar:not([data-boardui-sidebar]).collapsed {
     width: 224px;
     padding-inline: 16px;
   }
-  .sidebar.collapsed .sidebar-header {
+  .sidebar:not([data-boardui-sidebar]).collapsed .sidebar-header {
     justify-content: space-between;
     margin-inline: 0;
     gap: 8px;
   }
-  .sidebar.collapsed .brand > span,
-  .sidebar.collapsed .profile .grow,
-  .sidebar.collapsed .profile > button,
-  .sidebar.collapsed .nav button > span:not(.nav-selection) {
+  .sidebar:not([data-boardui-sidebar]).collapsed .brand > span,
+  .sidebar:not([data-boardui-sidebar]).collapsed .profile .grow,
+  .sidebar:not([data-boardui-sidebar]).collapsed .profile > button,
+  .sidebar:not([data-boardui-sidebar]).collapsed
+    .nav
+    button
+    > span:not(.nav-selection) {
     display: initial;
   }
-  .sidebar.collapsed .sidebar-brand {
+  .sidebar:not([data-boardui-sidebar]).collapsed .sidebar-brand {
     display: flex;
   }
-  .sidebar.collapsed .nav button {
+  .sidebar:not([data-boardui-sidebar]).collapsed .nav button {
     justify-content: flex-start;
     padding-inline: 12px;
   }
@@ -2370,7 +2381,7 @@ h2,
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .sidebar,
+  .sidebar:not([data-boardui-sidebar]),
   .shell {
     transition: none;
   }
@@ -2819,4 +2830,250 @@ html {
   overflow-wrap: anywhere;
   font-size: 12px;
   user-select: all;
+}
+
+/* BoardUI application shell. The existing screen layout remains responsible for
+   content; these rules only place the floating sidebar and its mobile drawer. */
+.app {
+  background: #fafbfc;
+}
+.app .shell {
+  margin-left: 292px;
+  width: calc(100% - 292px);
+  min-width: 0;
+  transition:
+    margin-left 300ms ease,
+    width 300ms ease;
+}
+.app.sidebar-is-collapsed .shell {
+  margin-left: 92px;
+  width: calc(100% - 92px);
+}
+.board-sidebar {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  bottom: 16px;
+  height: calc(100dvh - 32px);
+  z-index: 40;
+  color: var(--color-text-primary);
+}
+.board-sidebar-brand .brand {
+  gap: 8px;
+  font-size: 20px;
+  letter-spacing: -0.8px;
+  white-space: nowrap;
+}
+.board-sidebar.collapsed .board-sidebar-brand .brand > span {
+  display: none;
+}
+.board-sidebar.collapsed .board-sidebar-brand {
+  width: 36px;
+  display: flex;
+  justify-content: center;
+}
+.board-sidebar-brand .brand svg {
+  width: 26px;
+}
+.board-mobile-close {
+  display: none;
+}
+.app .topbar {
+  height: 72px;
+  padding: 0 32px;
+  background: #fafbfc;
+}
+.app .main {
+  padding: 28px 32px 48px;
+  max-width: 1700px;
+  margin: 0 auto;
+}
+.app .command-trigger {
+  background: #fff;
+  border-color: var(--color-border-button-default);
+  border-radius: 10px;
+}
+[data-boardui="button"] {
+  text-decoration: none;
+}
+[data-boardui="button"] svg {
+  flex-shrink: 0;
+}
+button.nav-backdrop[data-boardui] {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #10182866;
+  z-index: 39;
+}
+@media (max-width: 900px) {
+  .app .shell,
+  .app.sidebar-is-collapsed .shell {
+    margin-left: 0;
+    width: 100%;
+  }
+  .board-sidebar,
+  .board-sidebar.collapsed {
+    width: 260px;
+    padding: 12px;
+    transform: translateX(-300px);
+    transition: transform 250ms ease;
+  }
+  .board-sidebar.open {
+    transform: translateX(0);
+  }
+  .board-sidebar .board-collapse {
+    display: none;
+  }
+  .board-sidebar .board-mobile-close {
+    display: inline-flex;
+  }
+  .board-sidebar.collapsed .board-sidebar-heading {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .board-sidebar.collapsed .board-sidebar-brand {
+    width: auto;
+  }
+  .board-sidebar.collapsed .board-sidebar-brand .brand > span {
+    display: inline;
+  }
+  .board-sidebar.collapsed .board-sidebar-search,
+  .board-sidebar.collapsed .board-sidebar-nav a {
+    width: 100%;
+  }
+  .board-sidebar.collapsed .board-sidebar-account {
+    flex-direction: row;
+    padding: 8px;
+  }
+  .board-sidebar.collapsed .max-w-0 {
+    max-width: 100%;
+    opacity: 1;
+    filter: none;
+  }
+  .app .menu-btn {
+    display: inline-flex;
+  }
+  .app .topbar {
+    padding: 0 20px;
+    height: 64px;
+  }
+  .app .main {
+    padding: 24px 20px 40px;
+  }
+}
+@media (max-width: 560px) {
+  .app .topbar .command-trigger {
+    display: none;
+  }
+  .app .main {
+    padding: 20px 16px 36px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .board-sidebar,
+  .board-sidebar *,
+  .app .shell {
+    transition: none !important;
+  }
+}
+
+/* Rich row controls retain the BoardUI shape and motion with readable neutral
+   text. Their content can grow without being clipped to a one-line button. */
+.app .work-row[data-boardui],
+.app .palette-option[data-boardui],
+.app .calendar-entry[data-boardui],
+.app .social-connection[data-boardui] {
+  color: var(--color-text-primary);
+  height: auto;
+  white-space: normal;
+}
+.app .work-row[data-boardui] {
+  min-height: 66px;
+  border-radius: 10px;
+  padding: 12px 10px;
+  gap: 16px;
+}
+.app .work-row[data-boardui]:hover {
+  background: var(--color-background-secondary-hover);
+}
+.app .calendar-view {
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--color-background-tertiary-default);
+}
+.app .calendar-view button[data-boardui] {
+  min-width: 76px;
+  height: 36px;
+}
+.app .calendar-entry[data-boardui] {
+  display: block;
+  border-radius: 10px;
+}
+.platform-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.platform-icon.mini-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+@media (max-width: 900px) {
+  .board-sidebar {
+    visibility: hidden;
+  }
+  .board-sidebar.open {
+    visibility: visible;
+  }
+}
+@media (min-width: 901px) {
+  button.nav-backdrop[data-boardui] {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .app button[data-boardui]:not(.nav-backdrop),
+  .board-sidebar-nav a {
+    min-height: 44px;
+  }
+  .app button[data-boardui].w-9 {
+    width: 44px;
+  }
+  .app .calendar-view button[data-boardui] {
+    height: 44px;
+  }
+  .app .calendar-navigation {
+    gap: 8px;
+  }
+}
+.app .panel-head {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.app .panel-head > h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.board-segmented-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--color-background-tertiary-default);
+}
+.app .tabs {
+  flex-wrap: wrap;
+  gap: 4px;
+  border: 0;
+}
+.app .tabs button[data-boardui] {
+  gap: 6px;
 }

@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "./base/buttons/button";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -207,7 +208,9 @@ export function AuthPanel({
           <h2 id="auth-title">{title}</h2>
           <p>{description}</p>
           {view === "recover" && recoveryEnabled && emailEnabled && (
-            <button
+            <Button
+              variant="ghost"
+              contentLayout="custom"
               className="auth-text-link"
               type="button"
               disabled={busy}
@@ -220,7 +223,7 @@ export function AuthPanel({
               {recoverByEmail
                 ? "Use a recovery code"
                 : "Send me an email instead"}
-            </button>
+            </Button>
           )}
           {(error || confirmationError) && (
             <ErrorNote message={error || confirmationError} />
@@ -248,8 +251,9 @@ export function AuthPanel({
               >
                 {issuedCode}
               </pre>
-              <button
-                className="btn"
+              <Button
+                variant="secondary"
+                className=""
                 type="button"
                 onClick={async () => {
                   try {
@@ -261,7 +265,7 @@ export function AuthPanel({
                 }}
               >
                 Copy recovery code
-              </button>
+              </Button>
               <label className="row small">
                 <input
                   type="checkbox"
@@ -270,8 +274,10 @@ export function AuthPanel({
                 />{" "}
                 I saved my recovery code
               </label>
-              <button
-                className="btn primary"
+              <Button
+                trailingIcon={ArrowRight}
+                variant="primary"
+                className=""
                 type="button"
                 disabled={!savedCode}
                 onClick={() => {
@@ -280,8 +286,8 @@ export function AuthPanel({
                   else router.push("/app");
                 }}
               >
-                Open MediaFlock <ArrowRight size={15} />
-              </button>
+                Open MediaFlock
+              </Button>
             </div>
           ) : view === "signup" && !signupEnabled ? (
             <p className="auth-message">
@@ -366,14 +372,15 @@ export function AuthPanel({
                   )}
                 </div>
               )}
-              <button
-                className="btn primary"
+              <Button
+                trailingIcon={ArrowRight}
+                variant="primary"
+                className=""
                 disabled={busy || !ready}
                 type="submit"
               >
                 {busy ? "Please wait…" : action}
-                <ArrowRight size={15} />
-              </button>
+              </Button>
             </div>
           )}
           {!ready && (
@@ -392,14 +399,16 @@ export function AuthPanel({
               </p>
             )}
             {view === "signin" && emailEnabled && (
-              <button
+              <Button
+                variant="ghost"
+                contentLayout="custom"
                 className="auth-text-link"
                 type="button"
                 onClick={() => void resend()}
                 disabled={busy || !email}
               >
                 Resend confirmation email
-              </button>
+              </Button>
             )}
           </div>
         </form>

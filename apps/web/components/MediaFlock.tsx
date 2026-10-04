@@ -1,11 +1,6 @@
 "use client";
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useSyncExternalStore,
-} from "react";
-import Link from "next/link";
+import { Button } from "./base/buttons/button";
+import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -16,12 +11,9 @@ import {
   Users,
   Settings,
   Plug,
-  PanelLeftClose,
-  PanelLeftOpen,
   Search,
   Menu,
   RefreshCw,
-  LogOut,
   X,
   ArrowRight,
   Plus,
@@ -29,6 +21,7 @@ import {
 import { OperationStatus } from "./effects";
 import { AppContext, type LoadCache } from "./context";
 import { Brand, Modal } from "./ui";
+import { DashboardSidebar } from "./application/dashboard/dashboard-sidebar";
 import {
   Overview,
   Library,
@@ -224,89 +217,56 @@ export function MediaFlock() {
     <AppContext.Provider value={context}>
       <div className={"app " + (collapsed ? "sidebar-is-collapsed" : "")}>
         {menu && (
-          <button
+          <Button
+            variant="ghost"
+            contentLayout="custom"
+            type="button"
             className="nav-backdrop"
             onClick={() => setMenu(false)}
             aria-label="Close navigation"
           />
         )}
-        <aside
-          className={
-            "sidebar " + (menu ? "open " : "") + (collapsed ? "collapsed" : "")
-          }
-        >
-          <div className="sidebar-header">
-            <Link
-              href="/"
-              className="sidebar-brand"
-              aria-label="MediaFlock home"
-            >
-              <Brand />
-            </Link>
-            <button
-              className="sidebar-collapse"
-              onClick={toggleSidebar}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              aria-expanded={!collapsed}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              {collapsed ? (
-                <PanelLeftOpen size={15} />
-              ) : (
-                <PanelLeftClose size={15} />
-              )}
-            </button>
-          </div>
-          <nav className="nav" aria-label="Main navigation">
-            {navigation.map(([id, label, Icon]) => (
-              <button
-                key={id}
-                className={screen === id ? "selected" : ""}
-                onClick={() => navigate(id)}
-                aria-label={label}
-                title={collapsed ? label : undefined}
-                aria-current={screen === id ? "page" : undefined}
-              >
-                {screen === id && <span className="nav-selection" />}
-                <Icon size={15} strokeWidth={1.6} />
-                <span>{label}</span>
-              </button>
-            ))}
-          </nav>
-          <div className="sidebar-bottom">
-            <div className="profile">
-              <span className="avatar">{initials}</span>
-              <div className="grow">
-                <div className="tiny">{session.user.name}</div>
-              </div>
-              <button
-                className="btn icon ghost"
-                aria-label="Sign out"
-                onClick={async () => {
-                  const r = await fetch("/api/logout", {
-                    method: "POST",
-                    headers: { "x-mediaflock-csrf": session.csrf },
-                  });
-                  if (r.ok) setSession(null);
-                  else notify("Sign-out could not be completed.");
-                }}
-              >
-                <LogOut size={13} />
-              </button>
-            </div>
-          </div>
-        </aside>
+        <DashboardSidebar
+          collapsed={collapsed}
+          mobileOpen={menu}
+          selected={screen}
+          items={navigation.map(([key, label, icon]) => ({
+            key,
+            label,
+            icon,
+            href: `/app?screen=${key}`,
+          }))}
+          brand={<Brand />}
+          name={String(session.user.name || "Your account")}
+          initials={initials}
+          onCollapse={toggleSidebar}
+          onClose={() => setMenu(false)}
+          onNavigate={navigate}
+          onSearch={() => setPalette(true)}
+          onSignOut={() => {
+            void (async () => {
+              const r = await fetch("/api/logout", {
+                method: "POST",
+                headers: { "x-mediaflock-csrf": session.csrf },
+              });
+              if (r.ok) setSession(null);
+              else notify("Sign-out could not be completed.");
+            })();
+          }}
+        />
         <div className="shell">
           <header className="topbar">
             <div className="row">
-              <button
-                className="btn icon ghost menu-btn"
+              <Button
+                leadingIcon={Menu}
+                iconOnly
+                variant="ghost"
+                type="button"
+                className="menu-btn w-9"
                 onClick={() => setMenu(!menu)}
                 aria-label="Open navigation"
                 aria-expanded={menu}
-              >
-                <Menu size={18} />
-              </button>
+              ></Button>
               <div className="breadcrumbs">
                 <span>Workspace</span>
                 <span>/</span>
@@ -314,21 +274,26 @@ export function MediaFlock() {
               </div>
             </div>
             <div className="row">
-              <button
+              <Button
+                leadingIcon={Search}
+                variant="ghost"
+                contentLayout="custom"
+                type="button"
                 className="command-trigger"
                 onClick={() => setPalette(true)}
                 aria-label="Open command palette"
               >
-                <Search size={13} />
                 Search or jump to…<kbd>⌘ K</kbd>
-              </button>
-              <button
-                className="btn icon ghost"
+              </Button>
+              <Button
+                leadingIcon={RefreshCw}
+                iconOnly
+                variant="ghost"
+                type="button"
+                className="w-9"
                 aria-label="Refresh records"
                 onClick={refresh}
-              >
-                <RefreshCw size={14} />
-              </button>
+              ></Button>
             </div>
           </header>
           <main className="main" key={screen}>
@@ -357,12 +322,15 @@ export function MediaFlock() {
       {toast && (
         <div className="toast" role="status">
           <span>{toast}</span>
-          <button
+          <Button
+            leadingIcon={X}
+            iconOnly
+            variant="ghost"
+            contentLayout="custom"
+            type="button"
             aria-label="Dismiss notification"
             onClick={() => setToast("")}
-          >
-            <X size={14} />
-          </button>
+          ></Button>
         </div>
       )}
       {palette && (
@@ -391,7 +359,10 @@ export function MediaFlock() {
           ]
             .filter((x) => x.label.toLowerCase().includes(search.toLowerCase()))
             .map(({ id, label, Icon }) => (
-              <button
+              <Button
+                variant="ghost"
+                contentLayout="custom"
+                type="button"
                 key={id}
                 className="palette-option"
                 onClick={() => {
@@ -404,7 +375,7 @@ export function MediaFlock() {
                 <Icon size={16} />
                 {label}
                 <ArrowRight size={12} className="ml-auto" />
-              </button>
+              </Button>
             ))}
           <div className="tiny muted section-space">
             Tab to move · Enter to select · Escape to close

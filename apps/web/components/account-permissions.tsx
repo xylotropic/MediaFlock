@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "./base/buttons/button";
 import { useState } from "react";
 import { useApp, useAction } from "./context";
 import { Modal, Field, ErrorNote } from "./ui";
@@ -43,11 +44,18 @@ export function AccountPermissionReview({
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Close
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={
               action.busy ||
               !publishing ||
@@ -74,7 +82,7 @@ export function AccountPermissionReview({
             }
           >
             Save review
-          </button>
+          </Button>
         </>
       }
     >

@@ -44,12 +44,12 @@ async function navigate(name: string) {
       .click();
   await page
     .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("button", { name, exact: true })
+    .getByRole("link", { name, exact: true })
     .click();
   await expect(
     page
       .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("button", { name, exact: true }),
+      .getByRole("link", { name, exact: true }),
   ).toHaveAttribute("aria-current", "page");
   if (name !== "Content")
     await expect(
@@ -394,12 +394,12 @@ try {
   await expect(
     page
       .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("button", { name: "Experiments", exact: true }),
+      .getByRole("link", { name: "Experiments", exact: true }),
   ).toHaveCount(0);
   await expect(
     page
       .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("button", { name: "Activity", exact: true }),
+      .getByRole("link", { name: "Activity", exact: true }),
   ).toHaveCount(0);
   const screens = [
     "Overview",

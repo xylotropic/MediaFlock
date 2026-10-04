@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "./base/buttons/button";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -54,14 +55,17 @@ export default function LandingCharts({ paused }: { paused: boolean }) {
       <div className={styles.activityPanel}>
         <div className={styles.chartHeading}>
           <span>Example activity</span>
-          <button
+          <Button
+            size="small"
+            variant="ghost"
+            contentLayout="custom"
             type="button"
             aria-label={`Show example ${period === "week" ? "monthly" : "weekly"} activity`}
             onClick={() => setPeriod(period === "week" ? "month" : "week")}
           >
             {period === "week" ? "Week" : "Month"}{" "}
             <span aria-hidden="true">↔</span>
-          </button>
+          </Button>
         </div>
         {visible && (
           <EChartsBarChart

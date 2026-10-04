@@ -1,4 +1,5 @@
 "use client";
+import { Button, ButtonLink } from "./base/buttons/button";
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { useApp, useLoad, useAction } from "./context";
@@ -99,23 +100,29 @@ export function SubscriptionConnections() {
                   : "Not connected"}
         </span>
         {data?.available ? (
-          <button
-            className="btn compact"
+          <Button
+            variant="secondary"
+            size="small"
+            type="button"
+            className=""
             disabled={action.busy || !!attempt}
             onClick={() => begin()}
           >
             Continue with ChatGPT
-          </button>
+          </Button>
         ) : (
           data && (
-            <a
-              className="btn compact"
+            <ButtonLink
+              trailingIcon={ExternalLink}
+              variant="secondary"
+              size="small"
+              className=""
               href={data.localUrl}
               target="_blank"
               rel="noreferrer"
             >
-              Open on this Mac <ExternalLink size={12} />
-            </a>
+              Open on this Mac
+            </ButtonLink>
           )
         )}
       </article>
@@ -124,16 +131,22 @@ export function SubscriptionConnections() {
         <div className="stack section-space">
           <p className="small muted">{progress}</p>
           <div className="row wrap">
-            <a
-              className="btn compact"
+            <ButtonLink
+              trailingIcon={ExternalLink}
+              variant="secondary"
+              size="small"
+              className=""
               href={attempt.url}
               target="_blank"
               rel="noreferrer"
             >
-              Open ChatGPT sign-in <ExternalLink size={12} />
-            </a>
-            <button
-              className="btn compact ghost"
+              Open ChatGPT sign-in
+            </ButtonLink>
+            <Button
+              variant="ghost"
+              size="small"
+              type="button"
+              className=""
               disabled={action.busy}
               onClick={() =>
                 void action
@@ -148,7 +161,7 @@ export function SubscriptionConnections() {
               }
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -210,13 +223,16 @@ export function SubscriptionConnections() {
                 <span className="small muted">
                   Unfinished sign-in · {p.id.slice(0, 8)}
                 </span>
-                <button
-                  className="btn compact"
+                <Button
+                  variant="secondary"
+                  size="small"
+                  type="button"
+                  className=""
                   disabled={action.busy || !!attempt}
                   onClick={() => begin(p.id)}
                 >
                   Resume sign-in
-                </button>
+                </Button>
               </div>
             ))}
         </div>
@@ -246,14 +262,17 @@ export function SubscriptionConnections() {
             connected to your ElevenLabs account.
           </p>
         </div>
-        <a
-          className="btn compact"
+        <ButtonLink
+          trailingIcon={ExternalLink}
+          variant="secondary"
+          size="small"
+          className=""
           href="https://elevenlabs.io/app"
           target="_blank"
           rel="noreferrer"
         >
-          Open ElevenLabs <ExternalLink size={12} />
-        </a>
+          Open ElevenLabs
+        </ButtonLink>
       </article>
     </>
   );
@@ -323,11 +342,17 @@ function SubscriptionSettings({
               ? "ChatGPT plan usage was not granted."
               : "Reconnect this saved account before drafting."}
           </p>
-          <button className="btn compact" onClick={onReconnect}>
+          <Button
+            variant="secondary"
+            size="small"
+            type="button"
+            className=""
+            onClick={onReconnect}
+          >
             {profile.signedIn && !profile.planPermission
               ? "Enable plan usage"
               : "Reconnect ChatGPT"}
-          </button>
+          </Button>
         </div>
       ) : (
         <>
@@ -363,8 +388,11 @@ function SubscriptionSettings({
             guaranteed limit on ChatGPT usage. Unreported usage keeps the full
             estimate reserved.
           </p>
-          <button
-            className="btn compact"
+          <Button
+            variant="secondary"
+            size="small"
+            type="button"
+            className=""
             disabled={action.busy || !model}
             onClick={() =>
               void action
@@ -381,7 +409,7 @@ function SubscriptionSettings({
             }
           >
             Save ChatGPT settings
-          </button>
+          </Button>
         </>
       )}
       {profile.lastVerifiedInference && (
@@ -391,8 +419,11 @@ function SubscriptionSettings({
       )}
       {(error || action.error) && <ErrorNote message={error || action.error} />}
       {profile.signedIn && (
-        <button
-          className="btn compact ghost"
+        <Button
+          variant="ghost"
+          size="small"
+          type="button"
+          className=""
           disabled={action.busy}
           onClick={() =>
             void action
@@ -409,7 +440,7 @@ function SubscriptionSettings({
           }
         >
           Disconnect ChatGPT
-        </button>
+        </Button>
       )}
     </div>
   );

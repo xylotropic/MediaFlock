@@ -1,4 +1,5 @@
 "use client";
+import { Button, ButtonLink } from "./base/buttons/button";
 import { useState } from "react";
 import { ArrowRight, ExternalLink, Plus } from "lucide-react";
 import { useApp, useLoad, useAction } from "./context";
@@ -63,15 +64,21 @@ export function ConnectionsPage() {
                     : "Not connected"}
               </span>
               <div className="row wrap">
-                <button
-                  className="btn compact"
+                <Button
+                  variant="secondary"
+                  size="small"
+                  type="button"
+                  className=""
                   onClick={() => setService(item.id)}
                 >
                   {entry?.has_key ? "Manage" : "Connect"}
-                </button>
+                </Button>
                 {entry?.has_key && (
-                  <button
-                    className="btn compact"
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    type="button"
+                    className=""
                     disabled={action.busy}
                     onClick={() =>
                       void action
@@ -87,17 +94,18 @@ export function ConnectionsPage() {
                     }
                   >
                     Check connection
-                  </button>
+                  </Button>
                 )}
-                <a
-                  className="btn icon ghost"
+                <ButtonLink
+                  leadingIcon={ExternalLink}
+                  iconOnly
+                  variant="ghost"
+                  className="w-9"
                   href={item.url}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={"Open " + item.title}
-                >
-                  <ExternalLink size={13} />
-                </a>
+                ></ButtonLink>
               </div>
             </article>
           );
@@ -121,14 +129,24 @@ export function ConnectionsPage() {
       <section className="connection-section">
         <div className="row spread">
           <h2>Social accounts</h2>
-          <button className="btn compact" onClick={() => setConnect(true)}>
-            <Plus size={12} />
+          <Button
+            leadingIcon={Plus}
+            variant="secondary"
+            size="small"
+            type="button"
+            className=""
+            onClick={() => setConnect(true)}
+          >
             Connect account
-          </button>
+          </Button>
         </div>
         {accounts?.length ? (
           accounts.map((item: any) => (
-            <button
+            <Button
+              trailingIcon={ArrowRight}
+              variant="ghost"
+              contentLayout="custom"
+              type="button"
               className="connection-row social-connection"
               key={item.id}
               onClick={() => navigate("accounts")}
@@ -141,8 +159,7 @@ export function ConnectionsPage() {
                 </span>
               </span>
               <Status value={item.status} />
-              <ArrowRight size={14} />
-            </button>
+            </Button>
           ))
         ) : (
           <p className="work-empty">
@@ -167,8 +184,11 @@ export function ConnectionsPage() {
                 {item.name}
                 <ExternalLink size={12} />
               </a>
-              <button
-                className="btn compact"
+              <Button
+                variant="secondary"
+                size="small"
+                type="button"
+                className=""
                 disabled={action.busy}
                 onClick={() =>
                   void action
@@ -180,12 +200,18 @@ export function ConnectionsPage() {
                 }
               >
                 Remove
-              </button>
+              </Button>
             </div>
           ))}
-          <button className="btn compact" onClick={() => setReference(true)}>
+          <Button
+            variant="secondary"
+            size="small"
+            type="button"
+            className=""
+            onClick={() => setReference(true)}
+          >
             Add service link
-          </button>
+          </Button>
         </div>
       </details>
       {service && (

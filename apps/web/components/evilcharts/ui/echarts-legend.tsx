@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/base/buttons/button";
 import {
   getColorsCount,
   indicatorBackground,
@@ -137,24 +138,32 @@ export function LegendOverlay({
         const isSelected =
           (selectedKey === null || selectedKey === key) &&
           (hoveredKey === null || hoveredKey === key);
-        return (
-          // No entrance here — the Recharts legend appears instantly, and a
-          // fade-in reads as disconnected from the canvas draw-in.
-          <div
-            key={key}
-            className={`flex items-center gap-1.5 transition-opacity ${
-              !isSelected ? "opacity-30" : ""
-            } ${isClickable ? "cursor-pointer" : ""}`}
-            onClick={() => {
-              if (isClickable) onToggle(key);
-            }}
-          >
+        const content = (
+          <>
             <LegendIndicator
               variant={variant}
               dataKey={key}
               colorsCount={colorsCount}
             />
             {item?.label}
+          </>
+        );
+        const className = `flex items-center gap-1.5 transition-opacity ${!isSelected ? "opacity-30" : ""}`;
+        return isClickable ? (
+          <Button
+            key={key}
+            variant="ghost"
+            size="small"
+            contentLayout="custom"
+            className={className}
+            aria-pressed={selectedKey === null || selectedKey === key}
+            onClick={() => onToggle(key)}
+          >
+            {content}
+          </Button>
+        ) : (
+          <div key={key} className={className}>
+            {content}
           </div>
         );
       })}

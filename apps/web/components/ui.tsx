@@ -1,6 +1,9 @@
 "use client";
+import { Button } from "./base/buttons/button";
 import { useEffect, useRef, type ReactNode } from "react";
 import { X, ArrowUpRight } from "lucide-react";
+import { Chip } from "./base/badges/chip";
+import { PlatformMark, socialPlatforms } from "./platform-mark";
 export const platformNames: Record<string, string> = {
   youtube: "YouTube",
   facebook: "Facebook",
@@ -53,7 +56,19 @@ export function Platform({
       title={platformNames[platform]}
       aria-label={platformNames[platform]}
     >
-      {platformMarks[platform] || "·"}
+      {socialPlatforms.find(
+        (item) => item.name.toLowerCase() === platform.toLowerCase(),
+      ) ? (
+        <PlatformMark
+          icon={
+            socialPlatforms.find(
+              (item) => item.name.toLowerCase() === platform.toLowerCase(),
+            )!.icon
+          }
+        />
+      ) : (
+        platformMarks[platform] || "·"
+      )}
     </span>
   );
 }
@@ -78,22 +93,19 @@ export function Status({ value }: { value: string }) {
     missed: "Missed",
     ready: "Ready",
   };
+  const color = ["published", "approved", "connected", "ready"].includes(value)
+    ? "lime"
+    : ["failed", "permission_missing", "rejected", "revoked"].includes(value)
+      ? "rose"
+      : ["needs_reconciliation", "pending", "missed", "unknown"].includes(value)
+        ? "yellow"
+        : ["queued", "scheduled", "submitting", "processing"].includes(value)
+          ? "blue"
+          : "neutral";
   return (
-    <span
-      className={
-        "pill " +
-        (["published", "approved", "connected", "ready"].includes(value)
-          ? "dark"
-          : ["needs_reconciliation", "permission_missing", "failed"].includes(
-                value,
-              )
-            ? "outline"
-            : "")
-      }
-    >
-      <span className="dot" />
+    <Chip color={color} variant="bold">
       {labels[value] || value}
-    </span>
+    </Chip>
   );
 }
 export function Empty({
@@ -244,13 +256,15 @@ export function Modal({
       >
         <div className="modal-header">
           <h2 id="modal-title">{title}</h2>
-          <button
-            className="btn icon ghost"
+          <Button
+            leadingIcon={X}
+            iconOnly
+            variant="ghost"
+            type="button"
+            className="w-9"
             onClick={onClose}
             aria-label="Close dialog"
-          >
-            <X size={17} />
-          </button>
+          ></Button>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-footer">{footer}</div>}
@@ -293,10 +307,16 @@ export function LinkButton({
   onClick: () => void;
 }) {
   return (
-    <button className="btn ghost compact" onClick={onClick}>
+    <Button
+      trailingIcon={ArrowUpRight}
+      variant="ghost"
+      size="small"
+      type="button"
+      className=""
+      onClick={onClick}
+    >
       {children}
-      <ArrowUpRight size={12} />
-    </button>
+    </Button>
   );
 }
 export function ErrorNote({ message }: { message: string }) {

@@ -2,7 +2,7 @@
 
 MediaFlock is a next generation social media harness built for brands trying to scale. It includes an API and MCP interface. Create drafts for each account, review them, schedule approved posts, and check delivery and performance.
 
-The interface uses a monochrome palette, Instrument Serif headings, an animated sidebar, and the EvilCharts ECharts bar component. It has nine navigation items: Overview, Content, Library, Approvals, Calendar, Analytics, Accounts, Connections, and Settings. Experiment tools remain available through the API and MCP. Calendar shows publication history.
+The interface uses a BoardUI controls, Instrument Serif headings, an animated sidebar, and the EvilCharts ECharts bar component. It has nine navigation items: Overview, Content, Library, Approvals, Calendar, Analytics, Accounts, Connections, and Settings. Experiment tools remain available through the API and MCP. Calendar shows publication history.
 
 The public website is [mediaflock.vercel.app](https://mediaflock.vercel.app). The public page is `/`, with its privacy policy at `/privacy`. Sign in at `/signin` and open the workspace at `/app`. The `/signup` page creates a separate workspace when registration is enabled. Registration starts closed. Email confirmation and email password reset need configured delivery. The owner selected verified email. The owner deferred email setup until a sending domain is available. Public signup and email recovery remain closed until an SMTP sender passes a real delivery check. An optional recovery-code flow is implemented separately and remains disabled.
 

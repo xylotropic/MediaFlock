@@ -1,4 +1,6 @@
 "use client";
+import { Chip } from "./base/badges/chip";
+import { Button, ButtonLink } from "./base/buttons/button";
 import {
   measurementGroups,
   measurementLabel,
@@ -42,7 +44,7 @@ import {
   OperationOrb,
   SilverFrame,
   FocusBeam,
-  LiquidTabs,
+  SegmentedTabs,
 } from "./effects";
 import { AccountPermissionReview } from "./account-permissions";
 import { ObservationChart } from "./charts";
@@ -100,8 +102,11 @@ function WorkerButton({ compact = false }: { compact?: boolean }) {
   const { request } = useApp(),
     a = useAction();
   return (
-    <button
-      className={"btn " + (compact ? "compact" : "")}
+    <Button
+      variant="secondary"
+      size={compact ? "small" : "medium"}
+      type="button"
+      className={"" + (compact ? "" : "")}
       disabled={a.busy}
       onClick={() =>
         void a
@@ -114,7 +119,7 @@ function WorkerButton({ compact = false }: { compact?: boolean }) {
     >
       {a.busy ? <OperationOrb state="connecting" /> : <Play size={12} />}{" "}
       {a.busy ? "Starting…" : "Process queue"}
-    </button>
+    </Button>
   );
 }
 export function Overview() {
@@ -128,10 +133,15 @@ export function Overview() {
         description="Review drafts, upcoming posts and recent results."
         actions={
           <>
-            <button className="btn primary" onClick={newContent}>
-              <Plus size={13} />
+            <Button
+              leadingIcon={Plus}
+              variant="primary"
+              type="button"
+              className=""
+              onClick={newContent}
+            >
               New content
-            </button>
+            </Button>
             {mode === "demo" && <WorkerButton />}
           </>
         }
@@ -139,13 +149,24 @@ export function Overview() {
       <section className="work-section">
         <div className="work-heading">
           <h2>Ready for review</h2>
-          <button className="action-link" onClick={() => navigate("approvals")}>
-            View approvals <ArrowRight size={13} />
-          </button>
+          <Button
+            trailingIcon={ArrowRight}
+            variant="ghost"
+            contentLayout="custom"
+            type="button"
+            className="action-link"
+            onClick={() => navigate("approvals")}
+          >
+            View approvals
+          </Button>
         </div>
         {data.pending.length ? (
           data.pending.map((x: any) => (
-            <button
+            <Button
+              trailingIcon={ArrowRight}
+              variant="ghost"
+              contentLayout="custom"
+              type="button"
               key={x.id}
               className="work-row"
               onClick={() => navigate("approvals")}
@@ -157,8 +178,7 @@ export function Overview() {
               <span className="tiny muted">
                 <LocalTime value={x.scheduled_at} timezone={timezone} />
               </span>
-              <ArrowRight size={14} />
-            </button>
+            </Button>
           ))
         ) : (
           <p className="work-empty">No content waiting for approval.</p>
@@ -167,13 +187,23 @@ export function Overview() {
       <section className="work-section">
         <div className="work-heading">
           <h2>Upcoming posts</h2>
-          <button className="action-link" onClick={() => navigate("calendar")}>
-            View calendar <ArrowRight size={13} />
-          </button>
+          <Button
+            trailingIcon={ArrowRight}
+            variant="ghost"
+            contentLayout="custom"
+            type="button"
+            className="action-link"
+            onClick={() => navigate("calendar")}
+          >
+            View calendar
+          </Button>
         </div>
         {data.upcoming.length ? (
           data.upcoming.map((x: any) => (
-            <button
+            <Button
+              variant="ghost"
+              contentLayout="custom"
+              type="button"
               key={x.id}
               className="work-row"
               onClick={() => inspectJob(x.id)}
@@ -186,7 +216,7 @@ export function Overview() {
                 <LocalTime value={x.scheduled_at} timezone={timezone} />
               </span>
               <Status value={x.state} />
-            </button>
+            </Button>
           ))
         ) : (
           <p className="work-empty">Nothing scheduled.</p>
@@ -195,13 +225,24 @@ export function Overview() {
       <section className="work-section">
         <div className="work-heading">
           <h2>Recent results</h2>
-          <button className="action-link" onClick={() => navigate("calendar")}>
-            View posted content <ArrowRight size={13} />
-          </button>
+          <Button
+            trailingIcon={ArrowRight}
+            variant="ghost"
+            contentLayout="custom"
+            type="button"
+            className="action-link"
+            onClick={() => navigate("calendar")}
+          >
+            View posted content
+          </Button>
         </div>
         {data.recentResults.length ? (
           data.recentResults.map((x: any) => (
-            <button
+            <Button
+              trailingIcon={ArrowRight}
+              variant="ghost"
+              contentLayout="custom"
+              type="button"
               key={x.id}
               className="work-row"
               onClick={() => inspectJob(x.id)}
@@ -213,8 +254,7 @@ export function Overview() {
                 )}
               </div>
               <Status value={x.state} />
-              <ArrowRight size={14} />
-            </button>
+            </Button>
           ))
         ) : (
           <p className="work-empty">Published content will appear here.</p>
@@ -222,11 +262,18 @@ export function Overview() {
       </section>
       <div className="quiet-links">
         {data.connectionProblems.length > 0 && (
-          <button className="action-link" onClick={() => navigate("accounts")}>
+          <Button
+            trailingIcon={ArrowRight}
+            variant="ghost"
+            contentLayout="custom"
+            type="button"
+            className="action-link"
+            onClick={() => navigate("accounts")}
+          >
             {data.connectionProblems.length} account
-            {data.connectionProblems.length === 1 ? "" : "s"} need attention{" "}
-            <ArrowRight size={13} />
-          </button>
+            {data.connectionProblems.length === 1 ? "" : "s"} need
+            attention{" "}
+          </Button>
         )}
       </div>
     </>
@@ -265,11 +312,19 @@ export function PackageEditor({
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            trailingIcon={ArrowRight}
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy || !title.trim()}
             onClick={() =>
               a.submit(
@@ -294,8 +349,7 @@ export function PackageEditor({
             }
           >
             {a.busy ? "Saving…" : "Save content"}
-            <ArrowRight size={12} />
-          </button>
+          </Button>
         </>
       }
     >
@@ -401,21 +455,31 @@ export function Library() {
         description="Your original media, source notes and saved content."
         actions={
           <>
-            <button className="btn" onClick={() => setUpload(true)}>
-              <Upload size={13} />
+            <Button
+              leadingIcon={Upload}
+              variant="secondary"
+              type="button"
+              className=""
+              onClick={() => setUpload(true)}
+            >
               Upload media
-            </button>
+            </Button>
             <SilverFrame>
-              <button className="btn primary" onClick={newContent}>
-                <Plus size={13} />
+              <Button
+                leadingIcon={Plus}
+                variant="primary"
+                type="button"
+                className=""
+                onClick={newContent}
+              >
                 New content
-              </button>
+              </Button>
             </SilverFrame>
           </>
         }
       />
       <div style={{ marginBottom: 24 }}>
-        <LiquidTabs
+        <SegmentedTabs
           label="Library view"
           options={[
             { value: "content", label: "Content" },
@@ -449,7 +513,9 @@ export function Library() {
             <article className="content-card" key={item.id}>
               <div className="row spread">
                 <FileText size={17} />
-                <span className="pill">{item.variant_count} versions</span>
+                <Chip variant="subtle" color="gray">
+                  {item.variant_count} versions
+                </Chip>
               </div>
               <h2>{item.title}</h2>
               <p className="small muted">
@@ -459,21 +525,25 @@ export function Library() {
               </p>
               <div className="tags">
                 {item.tags.map((tag: string) => (
-                  <span key={tag} className="tag">
+                  <Chip key={tag} variant="caption" color="blue">
                     {tag}
-                  </span>
+                  </Chip>
                 ))}
               </div>
               <div className="row spread" style={{ marginTop: "auto" }}>
                 <span className="tiny muted">
                   <LocalTime value={item.updated_at} dateOnly />
                 </span>
-                <button
-                  className="btn compact"
+                <Button
+                  trailingIcon={ArrowUpRight}
+                  variant="secondary"
+                  size="small"
+                  type="button"
+                  className=""
                   onClick={() => selectPackage(item.id)}
                 >
-                  Open in Studio <ArrowUpRight size={12} />
-                </button>
+                  Open in Studio
+                </Button>
               </div>
             </article>
           ) : (
@@ -496,7 +566,9 @@ export function Library() {
               <div className="asset-meta">
                 <div className="row spread">
                   <h3 className="truncate">{item.filename}</h3>
-                  <span className="pill">Original</span>
+                  <Chip variant="subtle" color="gray">
+                    Original
+                  </Chip>
                 </div>
                 <div className="tiny muted" style={{ marginTop: 6 }}>
                   {item.width}×{item.height} ·{" "}
@@ -507,36 +579,44 @@ export function Library() {
                 </div>
                 <div className="tags">
                   {item.tags.map((tag: string) => (
-                    <span key={tag} className="tag">
+                    <Chip key={tag} variant="caption" color="blue">
                       {tag}
-                    </span>
+                    </Chip>
                   ))}
                 </div>
                 <div className="mono" title={item.checksum}>
                   SHA-256 {item.checksum.slice(0, 24)}…
                 </div>
                 <div className="row wrap section-space">
-                  <button
-                    className="btn compact"
+                  <Button
+                    leadingIcon={SlidersHorizontal}
+                    variant="secondary"
+                    size="small"
+                    type="button"
+                    className=""
                     onClick={() => setProcess(item)}
                   >
-                    <SlidersHorizontal size={11} />
                     Process
-                  </button>
-                  <button
-                    className="btn compact"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    type="button"
+                    className=""
                     onClick={() => setEditAsset(item)}
                   >
                     Tags & notes
-                  </button>
-                  <a
-                    className="btn icon compact"
+                  </Button>
+                  <ButtonLink
+                    leadingIcon={Download}
+                    iconOnly
+                    variant="secondary"
+                    size="small"
+                    className="w-9"
                     aria-label={"Download original " + item.filename}
                     href={"/api/v1/assets/" + item.id + "/file"}
                     download={item.filename}
-                  >
-                    <Download size={12} />
-                  </a>
+                  ></ButtonLink>
                 </div>
                 {item.derivatives?.map((d: any) => (
                   <div
@@ -598,11 +678,18 @@ function UploadModal({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy || !file}
             onClick={() =>
               a.submit(
@@ -621,7 +708,7 @@ function UploadModal({ onClose }: { onClose: () => void }) {
           >
             {a.busy && <OperationOrb state="working" dark />}
             {a.busy ? "Uploading and checking…" : "Upload media"}
-          </button>
+          </Button>
         </>
       }
     >
@@ -676,8 +763,10 @@ function AssetMetadataModal({
       title="Media tags and notes"
       onClose={onClose}
       footer={
-        <button
-          className="btn primary"
+        <Button
+          variant="primary"
+          type="button"
+          className=""
           disabled={a.busy}
           onClick={() =>
             a.submit(
@@ -695,7 +784,7 @@ function AssetMetadataModal({
           }
         >
           Save tags and notes
-        </button>
+        </Button>
       }
     >
       <div className="stack">
@@ -739,11 +828,18 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy}
             onClick={() =>
               a.submit(
@@ -767,7 +863,7 @@ function ProcessModal({ asset, onClose }: { asset: any; onClose: () => void }) {
             }
           >
             Create version
-          </button>
+          </Button>
         </>
       }
     >
@@ -927,16 +1023,26 @@ export function Studio({
             title="Content"
             description="Create a version of your content for each account."
             actions={
-              <button className="btn primary" onClick={newContent}>
-                <Plus size={13} />
+              <Button
+                leadingIcon={Plus}
+                variant="primary"
+                type="button"
+                className=""
+                onClick={newContent}
+              >
                 New content
-              </button>
+              </Button>
             }
           />
           {error && <ErrorNote message={error} />}
           <Panel title="Choose your content">
             {packages?.map((p: any) => (
-              <button
+              <Button
+                leadingIcon={FileText}
+                trailingIcon={ArrowRight}
+                variant="ghost"
+                contentLayout="custom"
+                type="button"
                 key={p.id}
                 className="palette-option"
                 style={{
@@ -946,7 +1052,6 @@ export function Studio({
                 }}
                 onClick={() => onChoose(p.id)}
               >
-                <FileText size={17} />
                 <span className="grow">
                   {p.title}
                   <span
@@ -956,17 +1061,21 @@ export function Studio({
                     {p.variant_count} versions · {p.tags.join(", ")}
                   </span>
                 </span>
-                <ArrowRight size={13} />
-              </button>
+              </Button>
             ))}
             {!packages?.length && (
               <Empty
                 title="Start with source material"
                 description="Start with an idea, text or media, then create versions for your accounts."
                 action={
-                  <button className="btn" onClick={newContent}>
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    className=""
+                    onClick={newContent}
+                  >
                     Create content
-                  </button>
+                  </Button>
                 }
               />
             )}
@@ -995,17 +1104,32 @@ function PackageDetail({ id }: { id: string }) {
         description="Each account has its own version and edit history."
         actions={
           <>
-            <button className="btn" onClick={() => setEdit(true)}>
+            <Button
+              variant="secondary"
+              type="button"
+              className=""
+              onClick={() => setEdit(true)}
+            >
               Edit brief
-            </button>
-            <button className="btn" onClick={() => setManual(true)}>
-              <SquarePen size={12} />
+            </Button>
+            <Button
+              leadingIcon={SquarePen}
+              variant="secondary"
+              type="button"
+              className=""
+              onClick={() => setManual(true)}
+            >
               Write a draft
-            </button>
-            <button className="btn primary" onClick={() => setGenerate(true)}>
-              <Layers size={13} />
+            </Button>
+            <Button
+              leadingIcon={Layers}
+              variant="primary"
+              type="button"
+              className=""
+              onClick={() => setGenerate(true)}
+            >
               {mode === "demo" ? "Generate versions" : "Generate versions"}
-            </button>
+            </Button>
           </>
         }
       />
@@ -1025,9 +1149,9 @@ function PackageDetail({ id }: { id: string }) {
             </p>
             <div className="tags">
               {pkg.tags.map((x: string) => (
-                <span key={x} className="tag">
+                <Chip key={x} variant="caption" color="blue">
                   {x}
-                </span>
+                </Chip>
               ))}
             </div>
           </div>
@@ -1081,7 +1205,9 @@ function PackageDetail({ id }: { id: string }) {
                   </div>
                 </div>
               </div>
-              <span className="pill">Revision {v.revision}</span>
+              <Chip variant="subtle" color="gray">
+                Revision {v.revision}
+              </Chip>
             </div>
             <div className="variant-preview">
               <div className="preview-label" style={{ marginBottom: 10 }}>
@@ -1106,20 +1232,35 @@ function PackageDetail({ id }: { id: string }) {
                         ? "AI draft"
                         : "Written manually"}
                 </div>
-                <button className="action-link" onClick={() => setHistory(v)}>
+                <Button
+                  variant="ghost"
+                  contentLayout="custom"
+                  type="button"
+                  className="action-link"
+                  onClick={() => setHistory(v)}
+                >
                   Revision history
-                </button>
+                </Button>
               </div>
               <div className="row">
-                <button className="btn compact" onClick={() => setVariant(v)}>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  type="button"
+                  className=""
+                  onClick={() => setVariant(v)}
+                >
                   Edit
-                </button>
-                <button
-                  className="btn primary compact"
+                </Button>
+                <Button
+                  variant="primary"
+                  size="small"
+                  type="button"
+                  className=""
                   onClick={() => setApproval(v)}
                 >
                   Request approval
-                </button>
+                </Button>
               </div>
             </div>
           </article>
@@ -1180,11 +1321,18 @@ function GenerateModal({ pkg, onClose }: { pkg: any; onClose: () => void }) {
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy || !selections.length}
             onClick={() =>
               a.submit(
@@ -1203,7 +1351,7 @@ function GenerateModal({ pkg, onClose }: { pkg: any; onClose: () => void }) {
             {a.busy
               ? "Preparing drafts…"
               : "Generate " + selections.length + " versions"}
-          </button>
+          </Button>
         </>
       }
     >
@@ -1334,11 +1482,18 @@ function VariantEditor({
       wide
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy || !accountId}
             onClick={() =>
               a.submit(
@@ -1371,7 +1526,7 @@ function VariantEditor({
             }
           >
             {a.busy ? "Saving…" : "Save draft"}
-          </button>
+          </Button>
         </>
       }
     >
@@ -1444,8 +1599,10 @@ function VariantEditor({
                 maxLength={500}
               />
             </Field>
-            <button
-              className="btn"
+            <Button
+              variant="secondary"
+              type="button"
+              className=""
               disabled={!accountId || a.busy}
               onClick={() =>
                 void a
@@ -1461,18 +1618,21 @@ function VariantEditor({
               }
             >
               Suggest hooks
-            </button>
+            </Button>
             {hooks && (
               <div className="note">
                 <strong>{hooks.label}</strong>
                 {hooks.output.hooks.map((hook: string) => (
-                  <button
+                  <Button
+                    variant="ghost"
+                    contentLayout="custom"
+                    type="button"
                     key={hook}
                     className="palette-option"
                     onClick={() => change("hook", hook)}
                   >
                     {hook}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -1584,9 +1744,14 @@ function VariantEditor({
                 })}
               </div>
             </Field>
-            <button className="btn" onClick={() => setUtm(!utm)}>
+            <Button
+              variant="secondary"
+              type="button"
+              className=""
+              onClick={() => setUtm(!utm)}
+            >
               UTM builder {utm ? "↑" : "↓"}
-            </button>
+            </Button>
             {utm && (
               <UTMBuilder
                 value={payload.utm}
@@ -1646,8 +1811,11 @@ function UTMBuilder({
           onChange={(e) => setCampaign(e.target.value)}
         />
       </Field>
-      <button
-        className="btn compact"
+      <Button
+        variant="secondary"
+        size="small"
+        type="button"
+        className=""
         onClick={() => {
           try {
             const u = new URL(base);
@@ -1664,7 +1832,7 @@ function UTMBuilder({
         }}
       >
         Build tagged URL
-      </button>
+      </Button>
       {value && <div className="mono">{value}</div>}
       {error && <ErrorNote message={error} />}
       <p className="tiny muted">
@@ -1707,11 +1875,18 @@ function RequestApprovalModal({
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy}
             onClick={() =>
               a.submit(
@@ -1740,7 +1915,7 @@ function RequestApprovalModal({
             }
           >
             {a.busy ? "Requesting…" : "Request approval"}
-          </button>
+          </Button>
         </>
       }
     >
@@ -1846,17 +2021,20 @@ export function Approvals() {
           ["approved", "Approved"],
           ["all", "All requests"],
         ].map(([id, label]) => (
-          <button
+          <Button
+            variant={filter === id ? "primary" : "ghost"}
+            contentLayout="custom"
+            type="button"
             key={id}
             className={filter === id ? "active" : ""}
             onClick={() => setFilter(id)}
           >
             {label}{" "}
-            <span className="muted">
+            <span className={filter === id ? "opacity-80" : "muted"}>
               {data?.filter((x: any) => id === "all" || x.status === id)
                 .length || 0}
             </span>
-          </button>
+          </Button>
         ))}
       </div>
       {error && <ErrorNote message={error} />}
@@ -1910,13 +2088,16 @@ export function Approvals() {
                     : "A newer revision exists"}{" "}
                   · {ap.snapshot.provenance}
                 </span>
-                <button
-                  className="btn primary compact"
+                <Button
+                  trailingIcon={ArrowRight}
+                  variant="primary"
+                  size="small"
+                  type="button"
+                  className=""
                   onClick={() => setReview(ap)}
                 >
                   {ap.status === "pending" ? "Review post" : "View decision"}
-                  <ArrowRight size={12} />
-                </button>
+                </Button>
               </div>
             </div>
           </article>
@@ -1954,13 +2135,20 @@ function ApprovalReview({
       wide
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Close
-          </button>
+          </Button>
           {ap.status === "pending" ? (
             <>
-              <button
-                className="btn"
+              <Button
+                variant="secondary"
+                type="button"
+                className=""
                 disabled={a.busy || !canReview}
                 onClick={() =>
                   a.submit(
@@ -1974,9 +2162,12 @@ function ApprovalReview({
                 }
               >
                 Reject
-              </button>
-              <button
-                className="btn primary"
+              </Button>
+              <Button
+                leadingIcon={Check}
+                variant="primary"
+                type="button"
+                className=""
                 disabled={
                   a.busy ||
                   !canApprove ||
@@ -1991,14 +2182,15 @@ function ApprovalReview({
                   )
                 }
               >
-                <Check size={13} />
                 Approve this post
-              </button>
+              </Button>
             </>
           ) : ap.status === "approved" ? (
             <>
-              <button
-                className="btn"
+              <Button
+                variant="secondary"
+                type="button"
+                className=""
                 disabled={a.busy || !canReview}
                 onClick={() =>
                   a.submit(
@@ -2012,9 +2204,11 @@ function ApprovalReview({
                 }
               >
                 Withdraw approval
-              </button>
-              <button
-                className="btn primary"
+              </Button>
+              <Button
+                variant="primary"
+                type="button"
+                className=""
                 disabled={a.busy}
                 onClick={() =>
                   a.submit(
@@ -2027,7 +2221,7 @@ function ApprovalReview({
               >
                 <CalendarDaysIcon />
                 Schedule approved post
-              </button>
+              </Button>
             </>
           ) : null}
         </>
@@ -2208,13 +2402,20 @@ export function JobInspector({
       wide
       footer={
         <>
-          <button className="btn" onClick={reload}>
-            <RefreshCw size={12} />
+          <Button
+            leadingIcon={RefreshCw}
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={reload}
+          >
             Refresh status
-          </button>
+          </Button>
           {job && mode === "demo" && job.state === "published" && (
-            <button
-              className="btn"
+            <Button
+              variant="secondary"
+              type="button"
+              className=""
               disabled={a.busy}
               onClick={() =>
                 void a
@@ -2231,11 +2432,13 @@ export function JobInspector({
               }
             >
               Collect demo metrics
-            </button>
+            </Button>
           )}
           {job && job.state === "needs_reconciliation" && (
-            <button
-              className="btn"
+            <Button
+              variant="secondary"
+              type="button"
+              className=""
               disabled={a.busy}
               onClick={() =>
                 void a
@@ -2249,11 +2452,13 @@ export function JobInspector({
               }
             >
               Check delivery
-            </button>
+            </Button>
           )}
           {job && !["published", "cancelled", "failed"].includes(job.state) && (
-            <button
-              className="btn"
+            <Button
+              variant="secondary"
+              type="button"
+              className=""
               disabled={a.busy}
               onClick={() =>
                 void a
@@ -2266,11 +2471,16 @@ export function JobInspector({
               }
             >
               Request cancellation
-            </button>
+            </Button>
           )}
-          <button className="btn primary" onClick={onClose}>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Done
-          </button>
+          </Button>
         </>
       }
     >
@@ -2323,7 +2533,9 @@ export function JobInspector({
                       <div className="timeline-event" key={t.id}>
                         <div className="row spread">
                           <strong className="small">{t.operation}</strong>
-                          <span className="pill">{t.outcome}</span>
+                          <Chip variant="subtle" color="gray">
+                            {t.outcome}
+                          </Chip>
                         </div>
                         <div className="tiny muted">
                           <LocalTime value={t.started_at} timezone={timezone} />
@@ -2342,8 +2554,10 @@ export function JobInspector({
                     </p>
                   )}
                 </div>
-                <button
-                  className="btn"
+                <Button
+                  variant="secondary"
+                  type="button"
+                  className=""
                   disabled={a.busy || job.state !== "published"}
                   onClick={() =>
                     void a
@@ -2358,7 +2572,7 @@ export function JobInspector({
                   }
                 >
                   Summarize post metrics
-                </button>
+                </Button>
                 {summary && (
                   <div className="note">
                     <strong>{summary.label}</strong>
@@ -2453,24 +2667,28 @@ export function Calendar() {
         <div className="calendar-period-row">
           <div className="calendar-period">
             <div className="calendar-navigation">
-              <button
-                className="btn icon"
+              <Button
+                leadingIcon={ChevronLeft}
+                iconOnly
+                variant="secondary"
+                type="button"
+                className="w-9"
                 onClick={() =>
                   setAnchor(moveCalendarDate(selectedDay, view, -1))
                 }
                 aria-label={"Previous " + period}
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                className="btn icon"
+              ></Button>
+              <Button
+                leadingIcon={ChevronRight}
+                iconOnly
+                variant="secondary"
+                type="button"
+                className="w-9"
                 onClick={() =>
                   setAnchor(moveCalendarDate(selectedDay, view, 1))
                 }
                 aria-label={"Next " + period}
-              >
-                <ChevronRight size={16} />
-              </button>
+              ></Button>
             </div>
             <div className="calendar-period-label" aria-live="polite">
               <h2>{monthTitle}</h2>
@@ -2491,9 +2709,15 @@ export function Calendar() {
                     : "Month overview"}
               </span>
             </div>
-            <button className="btn compact" onClick={() => setAnchor(null)}>
+            <Button
+              variant="secondary"
+              size="small"
+              type="button"
+              className=""
+              onClick={() => setAnchor(null)}
+            >
               Today
-            </button>
+            </Button>
           </div>
           <div
             className="calendar-view"
@@ -2501,14 +2725,16 @@ export function Calendar() {
             aria-label="Calendar view"
           >
             {(["week", "month", "list"] as const).map((value) => (
-              <button
+              <Button
+                variant={view === value ? "primary" : "ghost"}
+                contentLayout="custom"
                 type="button"
                 key={value}
                 aria-pressed={view === value}
                 onClick={() => setView(value)}
               >
                 {value[0].toUpperCase() + value.slice(1)}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -2602,7 +2828,10 @@ export function Calendar() {
                       calendarDayKey(j.scheduled_at, timezone) === day,
                   )
                   .map((j: any) => (
-                    <button
+                    <Button
+                      variant="ghost"
+                      contentLayout="custom"
+                      type="button"
                       key={j.id}
                       className="calendar-entry"
                       onClick={() => inspectJob(j.id)}
@@ -2625,7 +2854,7 @@ export function Calendar() {
                       <div className="calendar-entry-status">
                         {j.state.replace(/_/g, " ")}
                       </div>
-                    </button>
+                    </Button>
                   ))}
               </div>
             </section>
@@ -2665,19 +2894,25 @@ export function Calendar() {
                   </td>
                   <td>
                     <div className="row">
-                      <button
-                        className="btn compact"
+                      <Button
+                        variant="secondary"
+                        size="small"
+                        type="button"
+                        className=""
                         onClick={() => inspectJob(j.id)}
                       >
                         Inspect
-                      </button>
+                      </Button>
                       {j.state === "cancelled" && (
-                        <button
-                          className="btn compact"
+                        <Button
+                          variant="secondary"
+                          size="small"
+                          type="button"
+                          className=""
                           onClick={() => setReschedule(j)}
                         >
                           New schedule
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </td>
@@ -2771,7 +3006,11 @@ export function Analytics() {
       {error && <ErrorNote message={error} />}
       <Panel
         title="24-hour post measurements"
-        action={<span className="pill">{chartRows.length} measurements</span>}
+        action={
+          <Chip variant="subtle" color="gray">
+            {chartRows.length} measurements
+          </Chip>
+        }
       >
         <div className="panel-body">
           {chartGroups.length ? (
@@ -2864,12 +3103,15 @@ export function Analytics() {
                 )?.map((x: any) => (
                   <tr key={x.job_id || x.jobId}>
                     <td>
-                      <button
+                      <Button
+                        variant="ghost"
+                        contentLayout="custom"
+                        type="button"
                         className="action-link"
                         onClick={() => inspectJob(x.job_id || x.jobId)}
                       >
                         {x.title}
-                      </button>
+                      </Button>
                     </td>
                     <td>{x.handle}</td>
                     <td>
@@ -2933,12 +3175,15 @@ export function Analytics() {
               {observations.slice(0, 60).map((x: any) => (
                 <tr key={x.id}>
                   <td>
-                    <button
+                    <Button
+                      variant="ghost"
+                      contentLayout="custom"
+                      type="button"
                       className="action-link"
                       onClick={() => inspectJob(x.job_id)}
                     >
                       {x.title}
-                    </button>
+                    </Button>
                   </td>
                   <td>
                     <div className="account-mini">
@@ -2976,12 +3221,15 @@ export function Analytics() {
                     <LocalTime value={x.observed_at} timezone={timezone} />
                   </td>
                   <td>
-                    <button
-                      className="btn compact"
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      type="button"
+                      className=""
                       onClick={() => setDetail(x)}
                     >
                       Evidence
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -3077,10 +3325,15 @@ export function Experiments() {
         title="Experiments"
         description="Compare posts with one planned difference."
         actions={
-          <button className="btn primary" onClick={() => setCreate(true)}>
-            <Plus size={13} />
+          <Button
+            leadingIcon={Plus}
+            variant="primary"
+            type="button"
+            className=""
+            onClick={() => setCreate(true)}
+          >
             New experiment
-          </button>
+          </Button>
         }
       />
       {error && <ErrorNote message={error} />}
@@ -3089,32 +3342,43 @@ export function Experiments() {
           <article key={e.id} className="experiment-card">
             <div className="row spread">
               <FlaskConical size={18} strokeWidth={1.4} />
-              <span className="pill">{e.status}</span>
+              <Chip variant="subtle" color="gray">
+                {e.status}
+              </Chip>
             </div>
             <h2 style={{ marginTop: 20 }}>{e.name}</h2>
             <p className="small muted" style={{ marginTop: 10, minHeight: 50 }}>
               {e.hypothesis}
             </p>
             <div className="row wrap" style={{ marginTop: 18 }}>
-              <span className="pill">
+              <Chip variant="subtle" color="gray">
                 {e.changed_variable.replace("_", " ")}
-              </span>
-              <span className="pill">
+              </Chip>
+              <Chip variant="subtle" color="gray">
                 {e.primary_metric === "views"
                   ? "Views or impressions"
                   : e.primary_metric}{" "}
                 · {e.horizon_hours}h
-              </span>
-              <span className="pill">{e.assignment_count} assignments</span>
+              </Chip>
+              <Chip variant="subtle" color="gray">
+                {e.assignment_count} assignments
+              </Chip>
             </div>
             <div className="divider" />
             <div className="row spread">
               <span className="tiny muted">
                 Planned: {e.planned_samples} posts per group
               </span>
-              <button className="btn compact" onClick={() => setSelected(e.id)}>
-                View results <ArrowRight size={12} />
-              </button>
+              <Button
+                trailingIcon={ArrowRight}
+                variant="secondary"
+                size="small"
+                type="button"
+                className=""
+                onClick={() => setSelected(e.id)}
+              >
+                View results
+              </Button>
             </div>
           </article>
         ))}
@@ -3171,11 +3435,18 @@ function ExperimentEditor({
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={
               a.busy || !name || hypothesis.length < 10 || !selected.length
             }
@@ -3210,7 +3481,7 @@ function ExperimentEditor({
             }
           >
             Create experiment
-          </button>
+          </Button>
         </>
       }
     >
@@ -3356,11 +3627,18 @@ function ExperimentInspector({
       wide
       footer={
         <>
-          <button className="btn" onClick={() => setAssign(!assign)}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={() => setAssign(!assign)}
+          >
             Assign version
-          </button>
-          <button
-            className="btn"
+          </Button>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
             disabled={a.busy}
             onClick={() =>
               void a
@@ -3372,9 +3650,11 @@ function ExperimentInspector({
             }
           >
             Save evaluation
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy}
             onClick={() =>
               void a
@@ -3386,7 +3666,7 @@ function ExperimentInspector({
             }
           >
             Propose next experiment
-          </button>
+          </Button>
         </>
       }
     >
@@ -3411,10 +3691,10 @@ function ExperimentInspector({
             </div>
             <div className="row spread">
               <h2>{data.comparison.status}</h2>
-              <span className="pill">
+              <Chip variant="subtle" color="gray">
                 {data.comparison.availablePosts}/
                 {data.comparison.totalAssignedPosts} posts with evidence
-              </span>
+              </Chip>
             </div>
             {data.comparison.groups.map((g: any) => (
               <div className="panel" key={g.accountId + g.format}>
@@ -3574,8 +3854,10 @@ function ExperimentInspector({
             )}{" "}
             {data.insights.length > 0 && (
               <div className="row wrap">
-                <button
-                  className="btn"
+                <Button
+                  variant="secondary"
+                  type="button"
+                  className=""
                   disabled={a.busy}
                   onClick={() =>
                     void a
@@ -3591,10 +3873,12 @@ function ExperimentInspector({
                   }
                 >
                   Draft a finding for this account
-                </button>
+                </Button>
                 {observation && (
-                  <button
-                    className="btn"
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    className=""
                     disabled={a.busy}
                     onClick={() =>
                       void a
@@ -3616,7 +3900,7 @@ function ExperimentInspector({
                     }
                   >
                     Save proposed finding
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
@@ -3706,8 +3990,10 @@ function AssignmentForm({
             </select>
           </Field>
         </div>
-        <button
-          className="btn primary"
+        <Button
+          variant="primary"
+          type="button"
+          className=""
           disabled={!variantId || a.busy}
           onClick={() =>
             a.submit(
@@ -3728,7 +4014,7 @@ function AssignmentForm({
           }
         >
           Assign this revision
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -3745,10 +4031,15 @@ export function Accounts() {
         title="Accounts"
         description="Connected accounts, permissions and writing preferences."
         actions={
-          <button className="btn primary" onClick={() => setConnect(true)}>
-            <Plus size={13} />
+          <Button
+            leadingIcon={Plus}
+            variant="primary"
+            type="button"
+            className=""
+            onClick={() => setConnect(true)}
+          >
             Connect account
-          </button>
+          </Button>
         }
       />
       {error && <ErrorNote message={error} />}
@@ -3792,12 +4083,15 @@ export function Accounts() {
                   <LocalTime value={account.last_synced_at} />
                 </td>
                 <td>
-                  <button
-                    className="btn compact"
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    type="button"
+                    className=""
                     onClick={() => setInspect(account.id)}
                   >
                     Inspect
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -3842,12 +4136,19 @@ export function ConnectModal({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Close
-          </button>
+          </Button>
           {mode === "live" && (
-            <button
-              className="btn primary"
+            <Button
+              variant="primary"
+              type="button"
+              className=""
               disabled={a.busy}
               onClick={() =>
                 a.submit(
@@ -3861,7 +4162,7 @@ export function ConnectModal({ onClose }: { onClose: () => void }) {
               }
             >
               Get connection link
-            </button>
+            </Button>
           )}
         </>
       }
@@ -3905,9 +4206,14 @@ export function ConnectModal({ onClose }: { onClose: () => void }) {
             : "Choose publishing and feed permissions on the platform. Review those permissions when you return."}
         </p>
         {result && (
-          <a className="btn primary" href={result.url}>
-            Continue to provider <ExternalLink size={12} />
-          </a>
+          <ButtonLink
+            trailingIcon={ExternalLink}
+            variant="primary"
+            className=""
+            href={result.url}
+          >
+            Continue to provider
+          </ButtonLink>
         )}
       </div>
     </Modal>
@@ -3942,12 +4248,19 @@ function AccountInspector({
       wide
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Close
-          </button>
+          </Button>
           {mode === "demo" && data?.account.status !== "connected" && (
-            <button
-              className="btn"
+            <Button
+              variant="secondary"
+              type="button"
+              className=""
               disabled={a.busy}
               onClick={() =>
                 void a
@@ -3964,11 +4277,13 @@ function AccountInspector({
               }
             >
               Simulate reconnect
-            </button>
+            </Button>
           )}
           {data?.account.status === "connected" && (
-            <button
-              className="btn"
+            <Button
+              variant="secondary"
+              type="button"
+              className=""
               disabled={a.busy}
               onClick={() =>
                 void a
@@ -3980,10 +4295,12 @@ function AccountInspector({
               }
             >
               {mode === "demo" ? "Simulate disconnect" : "Disconnect account"}
-            </button>
+            </Button>
           )}
-          <button
-            className="btn primary"
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy || !data}
             onClick={() =>
               void a
@@ -4000,7 +4317,7 @@ function AccountInspector({
             }
           >
             Save preferences
-          </button>
+          </Button>
         </>
       }
     >
@@ -4059,8 +4376,10 @@ function AccountInspector({
                     onChange={(e) => setRule(e.target.value)}
                   />
                 </Field>
-                <button
-                  className="btn"
+                <Button
+                  variant="secondary"
+                  type="button"
+                  className=""
                   disabled={!rule.trim() || a.busy}
                   onClick={() =>
                     void a
@@ -4076,7 +4395,7 @@ function AccountInspector({
                   }
                 >
                   Add rule
-                </button>
+                </Button>
               </div>
               <div className="stack">
                 <h3>Permissions</h3>
@@ -4086,12 +4405,15 @@ function AccountInspector({
                     : "Review permissions before publishing"}
                 </p>
                 {mode === "live" && (
-                  <button
-                    className="btn compact"
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    type="button"
+                    className=""
                     onClick={() => setPermissions(true)}
                   >
                     Review permissions
-                  </button>
+                  </Button>
                 )}
                 <details>
                   <summary className="tiny muted">Permission details</summary>
@@ -4115,8 +4437,11 @@ function AccountInspector({
                         Insight {o.insight_id}
                       </div>
                       {o.status === "proposed" && (
-                        <button
-                          className="btn compact section-space"
+                        <Button
+                          variant="secondary"
+                          size="small"
+                          type="button"
+                          className="section-space"
                           disabled={a.busy}
                           onClick={() =>
                             void a
@@ -4133,7 +4458,7 @@ function AccountInspector({
                           }
                         >
                           Use as a writing rule
-                        </button>
+                        </Button>
                       )}
                     </div>
                   ))
@@ -4214,9 +4539,15 @@ export function ActivityPage() {
                 <td className="tiny">{x.actor_kind}</td>
                 <td className="tiny">{x.resource_type}</td>
                 <td>
-                  <button className="btn compact" onClick={() => setEvent(x)}>
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    type="button"
+                    className=""
+                    onClick={() => setEvent(x)}
+                  >
                     Inspect
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -4230,19 +4561,26 @@ export function ActivityPage() {
           footer={
             <>
               {event.resource_type === "publish_job" && (
-                <button
-                  className="btn"
+                <Button
+                  variant="secondary"
+                  type="button"
+                  className=""
                   onClick={() => {
                     setEvent(null);
                     inspectJob(event.resource_id);
                   }}
                 >
                   View publishing history
-                </button>
+                </Button>
               )}
-              <button className="btn primary" onClick={() => setEvent(null)}>
+              <Button
+                variant="primary"
+                type="button"
+                className=""
+                onClick={() => setEvent(null)}
+              >
                 Done
-              </button>
+              </Button>
             </>
           }
         >
@@ -4313,8 +4651,10 @@ export function SettingsPage() {
               ))}
           </select>
         </Field>
-        <button
-          className="btn"
+        <Button
+          variant="secondary"
+          type="button"
+          className=""
           disabled={a.busy || !data}
           onClick={() =>
             void a
@@ -4330,7 +4670,7 @@ export function SettingsPage() {
           }
         >
           Save preferences
-        </button>
+        </Button>
       </section>
       <section className="settings-section stack">
         <h2>Password</h2>
@@ -4372,13 +4712,14 @@ export function SettingsPage() {
               required
             />
           </Field>
-          <button
-            className="btn"
+          <Button
+            variant="secondary"
+            className=""
             type="submit"
             disabled={a.busy || !currentPassword || newPassword.length < 12}
           >
             Change password
-          </button>
+          </Button>
         </form>
       </section>
       <section className="settings-section stack">
@@ -4444,8 +4785,10 @@ export function SettingsPage() {
               <p className="small muted">
                 This code appears only once. It can reset your password once.
               </p>
-              <button
-                className="btn"
+              <Button
+                variant="secondary"
+                type="button"
+                className=""
                 onClick={() =>
                   navigator.clipboard
                     .writeText(recoveryCode)
@@ -4453,13 +4796,15 @@ export function SettingsPage() {
                 }
               >
                 Copy recovery code
-              </button>
-              <button
-                className="btn primary"
+              </Button>
+              <Button
+                variant="primary"
+                type="button"
+                className=""
                 onClick={() => setRecoveryCode("")}
               >
                 I saved my recovery code
-              </button>
+              </Button>
             </div>
           ) : (
             <form
@@ -4507,13 +4852,14 @@ export function SettingsPage() {
                   required
                 />
               </Field>
-              <button
-                className="btn"
+              <Button
+                variant="secondary"
+                className=""
                 type="submit"
                 disabled={a.busy || !recoveryPassword}
               >
                 Create recovery code
-              </button>
+              </Button>
             </form>
           )}
         </section>
@@ -4526,9 +4872,15 @@ export function SettingsPage() {
         <div className="stack settings-api-content">
           <div className="row spread">
             <h2>Access tokens</h2>
-            <button className="btn compact" onClick={() => setToken(true)}>
+            <Button
+              variant="secondary"
+              size="small"
+              type="button"
+              className=""
+              onClick={() => setToken(true)}
+            >
               Create token
-            </button>
+            </Button>
           </div>
           {!data.tokens.length && (
             <p className="small muted">No access tokens yet.</p>
@@ -4550,8 +4902,11 @@ export function SettingsPage() {
                     : "Active"}
               </span>
               {!t.revoked_at && (
-                <button
-                  className="btn compact"
+                <Button
+                  variant="secondary"
+                  size="small"
+                  type="button"
+                  className=""
                   disabled={a.busy}
                   onClick={() =>
                     void a
@@ -4563,7 +4918,7 @@ export function SettingsPage() {
                   }
                 >
                   Revoke
-                </button>
+                </Button>
               )}
             </div>
           ))}
@@ -4591,9 +4946,14 @@ export function SettingsPage() {
           title="Save your access token"
           onClose={() => setSecret(null)}
           footer={
-            <button className="btn primary" onClick={() => setSecret(null)}>
+            <Button
+              variant="primary"
+              type="button"
+              className=""
+              onClick={() => setSecret(null)}
+            >
               Done
-            </button>
+            </Button>
           }
         >
           <div className="stack">
@@ -4603,13 +4963,15 @@ export function SettingsPage() {
             <pre className="log" aria-label="New API token secret">
               {secret.secret}
             </pre>
-            <button
-              className="btn"
+            <Button
+              leadingIcon={Copy}
+              variant="secondary"
+              type="button"
+              className=""
               onClick={() => navigator.clipboard.writeText(secret.secret)}
             >
-              <Copy size={12} />
               Copy token
-            </button>
+            </Button>
           </div>
         </Modal>
       )}
@@ -4636,11 +4998,18 @@ function TokenModal({
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy || !name || !scopes.length}
             onClick={() =>
               a.submit(
@@ -4655,7 +5024,7 @@ function TokenModal({
             }
           >
             Create token
-          </button>
+          </Button>
         </>
       }
     >
@@ -4739,12 +5108,19 @@ export function IntegrationModal({
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Close
-          </button>
+          </Button>
           {mode === "live" && (
-            <button
-              className="btn primary"
+            <Button
+              variant="primary"
+              type="button"
+              className=""
               disabled={a.busy || (!key && !entry?.has_key)}
               onClick={() =>
                 a.submit(
@@ -4781,7 +5157,7 @@ export function IntegrationModal({
               }
             >
               Save connection
-            </button>
+            </Button>
           )}
         </>
       }
@@ -4879,12 +5255,15 @@ export function IntegrationModal({
                       Set your Project Redirect URL in Post for Me to:
                     </p>
                     <code className="callback-url">{callback}</code>
-                    <button
-                      className="btn compact"
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      type="button"
+                      className=""
                       onClick={() => navigator.clipboard.writeText(callback)}
                     >
                       Copy redirect URL
-                    </button>
+                    </Button>
                     <label className="check-row">
                       <input
                         type="checkbox"
@@ -4900,8 +5279,11 @@ export function IntegrationModal({
               </>
             )}
             {entry?.has_key && (
-              <button
-                className="btn compact"
+              <Button
+                variant="secondary"
+                size="small"
+                type="button"
+                className=""
                 disabled={a.busy}
                 onClick={() =>
                   a.submit(
@@ -4912,7 +5294,7 @@ export function IntegrationModal({
                 }
               >
                 Remove connection
-              </button>
+              </Button>
             )}
           </>
         )}
@@ -4933,11 +5315,18 @@ export function ServiceModal({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       footer={
         <>
-          <button className="btn" onClick={onClose}>
+          <Button
+            variant="secondary"
+            type="button"
+            className=""
+            onClick={onClose}
+          >
             Cancel
-          </button>
-          <button
-            className="btn primary"
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
+            className=""
             disabled={a.busy || !name || !url}
             onClick={() =>
               a.submit(
@@ -4948,7 +5337,7 @@ export function ServiceModal({ onClose }: { onClose: () => void }) {
             }
           >
             Save link
-          </button>
+          </Button>
         </>
       }
     >
