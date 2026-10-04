@@ -263,7 +263,30 @@ try {
   steps.push("Run separate worker and confirm both simulated publications");
   await navigate("Calendar");
   await page.getByRole("button", { name: "List", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "List", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByRole("button", { name: "List", exact: true }),
+  ).toHaveCSS("background-color", "rgb(27, 27, 27)");
+  await page.getByRole("button", { name: "Month", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Month", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".calendar-month .calendar-day")).toHaveCount(42);
+  await page.getByRole("button", { name: "List", exact: true }).click();
   await page.getByLabel("Calendar status filter").selectOption("all");
+  await page.getByRole("button", { name: "Month", exact: true }).click();
+  await page
+    .locator(".calendar-entry")
+    .filter({ hasText: label })
+    .first()
+    .click();
+  await expect(page.getByRole("dialog").locator("pre").first()).toContainText(
+    "simulated",
+  );
+  await page.getByRole("button", { name: "Done", exact: true }).click();
+  await page.getByRole("button", { name: "List", exact: true }).click();
   const row = page.locator("tr").filter({ hasText: label }).first();
   await row.getByRole("button", { name: "Inspect", exact: true }).click();
   await expect(page.getByRole("dialog").locator("pre").first()).toContainText(

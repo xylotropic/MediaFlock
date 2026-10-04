@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { useApp, useLoad, useAction } from "./context";
 import { ErrorNote, LocalTime } from "./ui";
+import { ServiceMark } from "./service-mark";
 
 export function SubscriptionConnections() {
   const { request, notify } = useApp();
@@ -73,6 +74,7 @@ export function SubscriptionConnections() {
   return (
     <>
       <article className="connection-row">
+        <ServiceMark service="chatgpt" />
         <div className="grow">
           <h3>ChatGPT</h3>
           <p className="small muted">
@@ -233,6 +235,7 @@ export function SubscriptionConnections() {
         </p>
       )}
       <article className="connection-row">
+        <ServiceMark service="elevenlabs" />
         <div className="grow">
           <h3>ElevenLabs</h3>
           <p className="small muted">

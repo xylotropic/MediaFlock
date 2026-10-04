@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { ArrowRight, ExternalLink, Plus } from "lucide-react";
 import { useApp, useLoad, useAction } from "./context";
-import { Header, ErrorNote, LocalTime } from "./ui";
+import { Header, ErrorNote, LocalTime, Status, platformNames } from "./ui";
+import { ServiceMark, SocialAccountMark } from "./service-mark";
 import { ConnectModal, IntegrationModal, ServiceModal } from "./screens";
 import { OperationStatus } from "./effects";
 import { SubscriptionConnections } from "./subscriptions";
@@ -42,6 +43,7 @@ export function ConnectionsPage() {
           const entry = data?.entries.find((x: any) => x.service === item.id);
           return (
             <article className="connection-row" key={item.id}>
+              <ServiceMark service={item.id} />
               <div className="grow">
                 <h3>{item.title}</h3>
                 <p className="small muted">{item.description}</p>
@@ -102,6 +104,7 @@ export function ConnectionsPage() {
         })}
         <SubscriptionConnections />
         <article className="connection-row">
+          <ServiceMark service="supabase" />
           <div className="grow">
             <h3>Supabase</h3>
             <p className="small muted">Database, sign-in and private media</p>
@@ -124,13 +127,23 @@ export function ConnectionsPage() {
           </button>
         </div>
         {accounts?.length ? (
-          <button className="work-row" onClick={() => navigate("accounts")}>
-            <span className="grow">
-              {accounts.filter((x: any) => x.status === "connected").length}{" "}
-              connected accounts
-            </span>
-            <ArrowRight size={14} />
-          </button>
+          accounts.map((item: any) => (
+            <button
+              className="connection-row social-connection"
+              key={item.id}
+              onClick={() => navigate("accounts")}
+            >
+              <SocialAccountMark platform={item.platform} />
+              <span className="grow">
+                <strong>{item.handle}</strong>
+                <span className="small muted">
+                  {platformNames[item.platform] || item.platform}
+                </span>
+              </span>
+              <Status value={item.status} />
+              <ArrowRight size={14} />
+            </button>
+          ))
         ) : (
           <p className="work-empty">
             Connect Post for Me above, then connect your social accounts.
@@ -142,8 +155,11 @@ export function ConnectionsPage() {
         <div className="stack section-space">
           {data?.services.map((item: any) => (
             <div className="row spread" key={item.id}>
+              <ServiceMark
+                service={item.name.toLowerCase().replace(/\s/g, "")}
+              />
               <a
-                className="action-link"
+                className="action-link grow"
                 href={item.url}
                 target="_blank"
                 rel="noreferrer"

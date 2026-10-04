@@ -1,5 +1,13 @@
 "use client";
 import { uploadOriginal } from "./upload";
+import {
+  calendarDayKey,
+  calendarDays,
+  calendarRange,
+  calendarDateLabel,
+  moveCalendarDate,
+  type CalendarView,
+} from "./calendar-utils";
 import { useState, useEffect } from "react";
 import {
   Plus,
@@ -2379,157 +2387,236 @@ export function Calendar() {
   const { data: jobs, error } = useLoad("publications"),
     { data: accounts } = useLoad("accounts"),
     { timezone, inspectJob, mode } = useApp(),
-    [view, setView] = useState("week"),
-    [week, setWeek] = useState(0),
+    [view, setView] = useState<CalendarView>("week"),
+    [anchor, setAnchor] = useState<string | null>(null),
     [account, setAccount] = useState("all"),
     [state, setState] = useState("active"),
     [reschedule, setReschedule] = useState<any>(null);
-  const today = localDefault(timezone).slice(0, 10),
-    base = new Date(today + "T12:00:00Z");
-  base.setUTCDate(base.getUTCDate() - ((base.getUTCDay() + 6) % 7) + week * 7);
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(base);
-    d.setUTCDate(base.getUTCDate() + i);
-    return { key: d.toISOString().slice(0, 10), date: d };
+  const today = calendarDayKey(new Date(), timezone),
+    selectedDay = anchor || today,
+    range = calendarRange(selectedDay, view),
+    days = calendarDays(selectedDay, view === "month" ? "month" : "week"),
+    period = view === "week" ? "week" : "month";
+  const filtered = (jobs || [])
+    .filter(
+      (j: any) =>
+        (account === "all" || j.account_id === account) &&
+        (state === "all" ||
+          (state === "active"
+            ? [
+                "queued",
+                "scheduled",
+                "processing",
+                "submitting",
+                "needs_reconciliation",
+              ].includes(j.state)
+            : j.state === state)),
+    )
+    .sort(
+      (a: any, b: any) =>
+        Date.parse(a.scheduled_at) - Date.parse(b.scheduled_at),
+    );
+  const visible = filtered.filter((j: any) => {
+    const day = calendarDayKey(j.scheduled_at, timezone);
+    return day >= range.start && day <= range.end;
   });
-  const filtered = jobs?.filter(
-    (j: any) =>
-      (account === "all" || j.account_id === account) &&
-      (state === "all" || state === "active"
-        ? state === "all" ||
-          [
-            "queued",
-            "scheduled",
-            "processing",
-            "submitting",
-            "needs_reconciliation",
-          ].includes(j.state)
-        : j.state === state),
-  );
-  const localDay = (date: string) =>
-    new Intl.DateTimeFormat("en-CA", {
+  const monthTitle = calendarDateLabel(selectedDay, {
+    month: "long",
+    year: "numeric",
+  });
+  const timeLabel = (value: string) =>
+    new Intl.DateTimeFormat("en-US", {
       timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date(date));
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(new Date(value));
   if (jobs === null) return <Loading error={error} />;
   return (
     <>
       <Header
         title="Calendar"
-        description={"Scheduled posts and delivery status · " + timezone}
-        actions={
-          <>
-            {mode === "demo" && <WorkerButton />}
-            <button className="btn" onClick={() => setWeek(0)}>
+        description={"Plan your posts and track delivery · " + timezone}
+        actions={mode === "demo" ? <WorkerButton /> : undefined}
+      />
+      <div className="calendar-controls">
+        <div className="calendar-period-row">
+          <div className="calendar-period">
+            <div className="calendar-navigation">
+              <button
+                className="btn icon"
+                onClick={() =>
+                  setAnchor(moveCalendarDate(selectedDay, view, -1))
+                }
+                aria-label={"Previous " + period}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                className="btn icon"
+                onClick={() =>
+                  setAnchor(moveCalendarDate(selectedDay, view, 1))
+                }
+                aria-label={"Next " + period}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <div className="calendar-period-label" aria-live="polite">
+              <h2>{monthTitle}</h2>
+              <span className="tiny muted">
+                {view === "week"
+                  ? calendarDateLabel(range.start, {
+                      month: "short",
+                      day: "numeric",
+                    }) +
+                    " – " +
+                    calendarDateLabel(range.end, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : view === "list"
+                    ? "Posts scheduled this month"
+                    : "Month overview"}
+              </span>
+            </div>
+            <button className="btn compact" onClick={() => setAnchor(null)}>
               Today
             </button>
-          </>
-        }
-      />
-      <div className="toolbar">
-        <div className="row wrap">
-          <button
-            className="btn icon"
-            onClick={() => setWeek(week - 1)}
-            aria-label="Previous week"
+          </div>
+          <div
+            className="calendar-view"
+            role="group"
+            aria-label="Calendar view"
           >
-            <ChevronLeft size={14} />
-          </button>
-          <button
-            className="btn icon"
-            onClick={() => setWeek(week + 1)}
-            aria-label="Next week"
-          >
-            <ChevronRight size={14} />
-          </button>
-          <span className="small">
-            {new Intl.DateTimeFormat("en-US", {
-              month: "short",
-              day: "numeric",
-            }).format(days[0].date)}{" "}
-            –{" "}
-            {new Intl.DateTimeFormat("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }).format(days[6].date)}
+            {(["week", "month", "list"] as const).map((value) => (
+              <button
+                type="button"
+                key={value}
+                aria-pressed={view === value}
+                onClick={() => setView(value)}
+              >
+                {value[0].toUpperCase() + value.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="calendar-filter-row">
+          <div className="calendar-filters">
+            <label className="calendar-select">
+              <span className="sr-only">Calendar account filter</span>
+              <select
+                className="select"
+                aria-label="Calendar account filter"
+                value={account}
+                onChange={(e) => setAccount(e.target.value)}
+              >
+                <option value="all">All accounts</option>
+                {accounts?.map((x: any) => (
+                  <option key={x.id} value={x.id}>
+                    {x.handle}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={14} aria-hidden="true" />
+            </label>
+            <label className="calendar-select">
+              <span className="sr-only">Calendar status filter</span>
+              <select
+                className="select"
+                aria-label="Calendar status filter"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+              >
+                <option value="active">Active posts</option>
+                <option value="all">All statuses</option>
+                <option value="published">Published</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="failed">Failed</option>
+              </select>
+              <ChevronDown size={14} aria-hidden="true" />
+            </label>
+          </div>
+          <span className="tiny muted" role="status">
+            {visible.length} {visible.length === 1 ? "post" : "posts"} this{" "}
+            {period}
           </span>
         </div>
-        <div className="row wrap">
-          <select
-            className="select"
-            aria-label="Calendar account filter"
-            value={account}
-            onChange={(e) => setAccount(e.target.value)}
-          >
-            <option value="all">All accounts</option>
-            {accounts?.map((x: any) => (
-              <option key={x.id} value={x.id}>
-                {x.handle}
-              </option>
-            ))}
-          </select>
-          <select
-            className="select"
-            aria-label="Calendar status filter"
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-          >
-            <option value="active">Active posts</option>
-            <option value="all">All statuses</option>
-            <option value="published">Published</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="failed">Failed</option>
-          </select>
-          <LiquidTabs
-            label="Calendar view"
-            options={[
-              { value: "week", label: "Week" },
-              { value: "list", label: "List" },
-            ]}
-            value={view}
-            onChange={setView}
-          />
-        </div>
       </div>
-      {error && <ErrorNote message={error} />}{" "}
-      {view === "week" ? (
-        <div className="calendar-grid">
-          {days.map((day) => (
-            <section key={day.key} className="calendar-day">
-              <div className="calendar-day-label">
-                {new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(
-                  day.date,
-                )}
-                <strong>{day.date.getUTCDate()}</strong>
+      {error && <ErrorNote message={error} />}
+      {view !== "list" ? (
+        <div
+          className={
+            "calendar-grid " +
+            (view === "month" ? "calendar-month" : "calendar-week")
+          }
+          aria-label={
+            view === "month" ? monthTitle + " calendar" : "Weekly calendar"
+          }
+        >
+          {view === "month" &&
+            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((name) => (
+              <div key={name} className="calendar-weekday">
+                {name}
               </div>
-              {filtered
-                ?.filter((j: any) => localDay(j.scheduled_at) === day.key)
-                .map((j: any) => (
-                  <button
-                    key={j.id}
-                    className="calendar-entry"
-                    onClick={() => inspectJob(j.id)}
-                  >
-                    <div className="row" style={{ gap: 5 }}>
-                      <Platform platform={j.platform} small />
-                      <span className="truncate">{j.handle}</span>
-                    </div>
-                    <strong style={{ marginTop: 6 }}>{j.title}</strong>
-                    <span>
-                      {new Intl.DateTimeFormat("en-US", {
-                        timeZone: timezone,
-                        hour: "numeric",
-                        minute: "2-digit",
-                      }).format(new Date(j.scheduled_at))}
-                    </span>
-                    <div style={{ marginTop: 5 }}>
-                      {j.state.replace(/_/g, " ")}
-                    </div>
-                  </button>
-                ))}
+            ))}
+          {days.map((day) => (
+            <section
+              key={day}
+              aria-label={calendarDateLabel(day, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+              className={
+                "calendar-day" +
+                (day === today ? " is-today" : "") +
+                (view === "month" && day.slice(0, 7) !== selectedDay.slice(0, 7)
+                  ? " is-outside"
+                  : "")
+              }
+            >
+              <div className="calendar-day-label">
+                {view === "week" &&
+                  calendarDateLabel(day, { weekday: "short" })}
+                <strong aria-current={day === today ? "date" : undefined}>
+                  {Number(day.slice(-2))}
+                </strong>
+              </div>
+              <div className="calendar-posts">
+                {filtered
+                  .filter(
+                    (j: any) =>
+                      calendarDayKey(j.scheduled_at, timezone) === day,
+                  )
+                  .map((j: any) => (
+                    <button
+                      key={j.id}
+                      className="calendar-entry"
+                      onClick={() => inspectJob(j.id)}
+                      aria-label={
+                        j.title +
+                        ", " +
+                        j.handle +
+                        ", " +
+                        timeLabel(j.scheduled_at) +
+                        ", " +
+                        j.state.replace(/_/g, " ")
+                      }
+                    >
+                      <div className="row" style={{ gap: 5 }}>
+                        <Platform platform={j.platform} small />
+                        <span className="truncate">{j.handle}</span>
+                      </div>
+                      <strong>{j.title}</strong>
+                      <span>{timeLabel(j.scheduled_at)}</span>
+                      <div className="calendar-entry-status">
+                        {j.state.replace(/_/g, " ")}
+                      </div>
+                    </button>
+                  ))}
+              </div>
             </section>
           ))}
         </div>
@@ -2545,7 +2632,7 @@ export function Calendar() {
               </tr>
             </thead>
             <tbody>
-              {filtered?.map((j: any) => (
+              {visible.map((j: any) => (
                 <tr key={j.id}>
                   <td>
                     <div className="account-mini">
@@ -2587,7 +2674,7 @@ export function Calendar() {
               ))}
             </tbody>
           </table>
-          {filtered?.length === 0 && (
+          {visible.length === 0 && (
             <Empty
               title="No posts in this view"
               description="Schedule approved posts from Approvals, or change the filters."

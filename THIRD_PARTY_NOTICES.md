@@ -2,6 +2,8 @@
 
 MediaFlock application code is MIT licensed. Dependencies and adapted components retain their own licenses; service access is not included in this license.
 
+Connection images identify their respective services and remain their owners' trademarks. The locally served, unmodified assets come from [Post for Me's site icon](https://www.postforme.dev/apple-touch-icon.png), [OpenAI's official ChatGPT icon reference](https://help.openai.com/en/articles/7905742-what-does-the-official-chatgpt-ios-app-icon-look-like), [ElevenLabs' official brand site](https://elevenlabs.io/brand), and [Supabase's official repository](https://github.com/supabase/supabase/blob/master/packages/common/assets/images/supabase-logo-icon.svg). They are not relicensed as MediaFlock code and do not imply endorsement or an active account connection.
+
 The local ChatGPT subscription flow is an independent implementation of OpenAI's documented Sign in with ChatGPT protocol. It uses the MIT-licensed jose library for OIDC signature verification and the existing OpenAI SDK's schema helper. No Sign in with ChatGPT devkit source is bundled or relicensed. Availability and plan permissions are controlled by OpenAI.
 
 - EvilCharts ECharts bar component: MIT, sourced from [legions-developer/evilcharts](https://github.com/legions-developer/evilcharts), including local evidence-click and ECharts 6 typing changes. License retained at `apps/web/components/evilcharts/LICENSE`.
