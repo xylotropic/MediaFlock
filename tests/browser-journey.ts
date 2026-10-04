@@ -46,10 +46,11 @@ async function navigate(name: string) {
     .getByRole("navigation", { name: "Main navigation" })
     .getByRole("link", { name, exact: true })
     .click();
+  // The mobile drawer closes after navigation; its selected state still persists.
   await expect(
     page
-      .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("link", { name, exact: true }),
+      .getByRole("navigation", { name: "Main navigation", includeHidden: true })
+      .getByRole("link", { name, exact: true, includeHidden: true }),
   ).toHaveAttribute("aria-current", "page");
   if (name !== "Content")
     await expect(
