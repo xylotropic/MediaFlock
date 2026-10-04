@@ -29,8 +29,8 @@ export function Landing() {
             Features
           </a>
           <Link href="/signin">Sign in</Link>
-          <Link href="/signup" className="btn primary">
-            Get started
+          <Link href="/app" className="btn primary">
+            Open MediaFlock
             <ArrowUpRight size={14} />
           </Link>
         </nav>
