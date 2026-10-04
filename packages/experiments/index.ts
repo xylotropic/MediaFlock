@@ -3,6 +3,7 @@ import { authorize, humanReviewer } from "../domain/auth";
 import { requireCondition } from "../domain/errors";
 import { experimentInput } from "../schemas";
 import { median } from "../analytics";
+import { deriveInteractionRatio } from "../analytics/metrics";
 export interface ComparisonRow {
   snapshotId: string;
   jobId: string;
@@ -14,6 +15,9 @@ export interface ComparisonRow {
   horizonHours: number;
   definition: string;
   denominator: string | null;
+  unit: string;
+  scope: string;
+  provenance: string;
   publishedAt: string;
   packageId: string;
 }
@@ -25,11 +29,27 @@ export function compareExperiment(
   const unique = new Map<string, ComparisonRow>();
   for (const r of rows) if (!unique.has(r.jobId)) unique.set(r.jobId, r);
   const valid = [...unique.values()].filter(
-    (x) => x.availability === "available" && x.value !== null,
+    (x) =>
+      x.availability === "available" &&
+      x.value !== null &&
+      Number.isFinite(x.value) &&
+      Number.isFinite(x.horizonHours) &&
+      x.horizonHours > 0 &&
+      (x.denominator === null ||
+        (typeof x.denominator === "string" &&
+          x.denominator.trim().length > 0)) &&
+      [
+        x.accountId,
+        x.format,
+        x.definition,
+        x.unit,
+        x.scope,
+        x.provenance,
+      ].every((field) => typeof field === "string" && field.trim().length > 0),
   );
   const strata = new Map<string, ComparisonRow[]>();
   for (const row of valid) {
-    const key = [
+    const key = JSON.stringify([
       row.accountId,
       changedVariable === "format"
         ? "deliberate-format-comparison"
@@ -37,7 +57,10 @@ export function compareExperiment(
       row.horizonHours,
       row.definition,
       row.denominator,
-    ].join("|");
+      row.unit,
+      row.scope,
+      row.provenance,
+    ]);
     strata.set(key, [...(strata.get(key) || []), row]);
   }
   const groups = [...strata.values()].map((list) => {
@@ -56,6 +79,9 @@ export function compareExperiment(
       horizonHours: list[0].horizonHours,
       definition: list[0].definition,
       denominator: list[0].denominator,
+      unit: list[0].unit,
+      scope: list[0].scope,
+      provenance: list[0].provenance,
       A: { count: A.length, median: a },
       B: { count: B.length, median: b },
       difference: a !== null && b !== null ? b - a : null,
@@ -234,29 +260,9 @@ export async function experimentResults(ctx: Context, id: string) {
       metrics.forEach((x) =>
         posts.set(x.job_id, [...(posts.get(x.job_id) || []), x]),
       );
-      selected = [...posts.values()].map((list) => {
-        const denominator = list.find(
-            (x) => x.metric === experiment.denominator,
-          ),
-          values = ["likes", "comments", "shares"].map((metric) =>
-            list.find((x) => x.metric === metric),
-          );
-        const valid =
-          denominator?.availability === "available" &&
-          Number(denominator.value) > 0 &&
-          values.every((x) => x?.availability === "available");
-        return {
-          ...list[0],
-          value: valid
-            ? values.reduce((sum, x) => sum + Number(x.value), 0) /
-              Number(denominator.value)
-            : null,
-          availability: valid ? "available" : "unknown",
-          definition: `(likes + comments + shares) / ${experiment.denominator}`,
-          denominator: experiment.denominator,
-          evidence_ids: list.map((x) => x.id),
-        };
-      });
+      selected = [...posts.values()].map((list) =>
+        deriveInteractionRatio(list, experiment.denominator),
+      );
     }
     const comparison = compareExperiment(
       selected.map((x) => ({
@@ -270,6 +276,9 @@ export async function experimentResults(ctx: Context, id: string) {
         horizonHours: x.horizon_hours,
         definition: x.definition,
         denominator: x.denominator,
+        unit: x.unit,
+        scope: x.scope,
+        provenance: x.provenance,
         publishedAt: x.published_at,
         packageId: x.package_id,
       })),

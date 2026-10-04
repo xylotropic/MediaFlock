@@ -1,4 +1,9 @@
 "use client";
+import {
+  measurementGroups,
+  measurementLabel,
+  exclusiveUtcDayEnd,
+} from "../../../packages/analytics/metrics";
 import { uploadOriginal } from "./upload";
 import {
   calendarDayKey,
@@ -2724,8 +2729,7 @@ export function Analytics() {
       "analytics?start=" +
         periodStart +
         "T00:00:00Z&end=" +
-        periodEnd +
-        "T23:59:59Z" +
+        exclusiveUtcDayEnd(periodEnd) +
         (account === "all" ? "" : "&accountId=" + account),
     ),
     { timezone, inspectJob } = useApp();
@@ -2741,6 +2745,7 @@ export function Analytics() {
     .sort(
       (a: any, b: any) => +new Date(a.observed_at) - +new Date(b.observed_at),
     );
+  const chartGroups = measurementGroups(chartRows);
   if (data === null) return <Loading error={error} />;
   return (
     <>
@@ -2765,21 +2770,40 @@ export function Analytics() {
       />
       {error && <ErrorNote message={error} />}
       <Panel
-        title="Views after 24 hours"
+        title="24-hour post measurements"
         action={<span className="pill">{chartRows.length} measurements</span>}
       >
         <div className="panel-body">
-          {chartRows.length ? (
-            <ObservationChart observations={chartRows} onInspect={setDetail} />
+          {chartGroups.length ? (
+            <div className="stack">
+              {chartGroups.map((group) => (
+                <section
+                  key={group.key}
+                  aria-label={`${group.label} · ${group.observations[0].handle}`}
+                >
+                  <h3>
+                    {group.observations[0].handle} ·{" "}
+                    {group.observations[0].format} · {group.label}
+                  </h3>
+                  <p className="tiny muted">
+                    {group.observations[0].definition}
+                  </p>
+                  <ObservationChart
+                    observations={group.observations}
+                    onInspect={setDetail}
+                  />
+                </section>
+              ))}
+            </div>
           ) : (
             <Empty
-              title="No view metrics yet"
+              title="No comparable measurements yet"
               description="Metrics appear after your approved posts publish and account access permits them."
             />
           )}
           <div className="tiny muted">
             {account === "all"
-              ? "Accounts appear together here. Metrics from different platforms may use different definitions."
+              ? "Each chart uses one account, format and measurement definition."
               : "Compare posts from the same account and format, measured after the same time."}{" "}
             Lifetime totals are never added together.
           </div>
@@ -2812,7 +2836,7 @@ export function Analytics() {
               >
                 <option value="posts">Posts published during period</option>
                 <option value="changes">
-                  Changes measured during this period
+                  Net change between recorded updates
                 </option>
               </select>
             </Field>
@@ -2826,16 +2850,17 @@ export function Analytics() {
                   <th>Account</th>
                   <th>
                     {periodView === "posts"
-                      ? "Latest lifetime views"
-                      : "Change in views"}
+                      ? "Latest lifetime counter"
+                      : "Net counter change"}
                   </th>
+                  <th>Measurement</th>
                   <th>Availability</th>
                 </tr>
               </thead>
               <tbody>
                 {(periodView === "posts"
                   ? data?.period?.postPerformance
-                  : data?.period?.metricChanges
+                  : data?.period?.recordedChanges
                 )?.map((x: any) => (
                   <tr key={x.job_id || x.jobId}>
                     <td>
@@ -2855,6 +2880,25 @@ export function Analytics() {
                         : x.change === null
                           ? "—"
                           : num(x.change)}
+                    </td>
+                    <td className="tiny muted">
+                      {measurementLabel(x)}
+                      {periodView === "changes" &&
+                        x.interval?.start &&
+                        x.interval?.end && (
+                          <>
+                            <br />
+                            <LocalTime
+                              value={x.interval.start}
+                              timezone={timezone}
+                            />{" "}
+                            to{" "}
+                            <LocalTime
+                              value={x.interval.end}
+                              timezone={timezone}
+                            />
+                          </>
+                        )}
                     </td>
                     <td className="tiny muted">
                       {x.availability.replace(/_/g, " ")}
@@ -2881,7 +2925,7 @@ export function Analytics() {
                 <th>Value</th>
                 <th>Measured after</th>
                 <th>Comparison baseline</th>
-                <th>Source & update time</th>
+                <th>Source & collection time</th>
                 <th />
               </tr>
             </thead>
@@ -2902,7 +2946,7 @@ export function Analytics() {
                       <span className="tiny">{x.handle}</span>
                     </div>
                   </td>
-                  <td>{x.metric}</td>
+                  <td>{measurementLabel(x)}</td>
                   <td>
                     {x.availability === "available" ? (
                       num(Number(x.value))
@@ -2923,6 +2967,12 @@ export function Analytics() {
                   <td className="tiny muted">
                     {x.provenance}
                     <br />
+                    {x.availability === "missed" && (
+                      <>
+                        Miss recorded
+                        <br />
+                      </>
+                    )}
                     <LocalTime value={x.observed_at} timezone={timezone} />
                   </td>
                   <td>
@@ -2972,7 +3022,7 @@ export function Analytics() {
               <strong>{detail.handle}</strong>
             </div>
             <div className="note">
-              <strong>{detail.metric}:</strong>{" "}
+              <strong>{measurementLabel(detail)}:</strong>{" "}
               {detail.value === null
                 ? "Unavailable"
                 : num(Number(detail.value))}{" "}
@@ -2983,7 +3033,9 @@ export function Analytics() {
               Availability: {detail.availability}
               <br />
               Scope: {detail.scope} · horizon {detail.horizon_hours}h<br />
-              Observed{" "}
+              {detail.availability === "missed"
+                ? "Miss recorded"
+                : "Collected"}{" "}
               <LocalTime value={detail.observed_at} timezone={timezone} />
               <br />
               Provenance: {detail.provenance}
@@ -3048,7 +3100,10 @@ export function Experiments() {
                 {e.changed_variable.replace("_", " ")}
               </span>
               <span className="pill">
-                {e.primary_metric} · {e.horizon_hours}h
+                {e.primary_metric === "views"
+                  ? "Views or impressions"
+                  : e.primary_metric}{" "}
+                · {e.horizon_hours}h
               </span>
               <span className="pill">{e.assignment_count} assignments</span>
             </div>
@@ -3197,7 +3252,13 @@ function ExperimentEditor({
             >
               {["views", "likes", "comments", "shares", "engagement_rate"].map(
                 (x) => (
-                  <option key={x}>{x}</option>
+                  <option key={x} value={x}>
+                    {x === "views"
+                      ? "Views or impressions"
+                      : x === "engagement_rate"
+                        ? "Interaction ratio"
+                        : x}
+                  </option>
                 ),
               )}
             </select>
@@ -3229,7 +3290,7 @@ function ExperimentEditor({
                 value={denominator}
                 onChange={(e) => setDenominator(e.target.value)}
               >
-                <option value="views">Views</option>
+                <option value="views">Views or impressions</option>
                 <option value="impressions">Impressions</option>
               </select>
             </Field>

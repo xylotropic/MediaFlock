@@ -4,9 +4,7 @@ import {
   type ChartConfig,
 } from "./evilcharts/charts/echarts-bar-chart";
 import { useReducedMotion } from "./effects";
-const chartConfig: ChartConfig = {
-  value: { label: "Views", colors: { light: ["#111111", "#797979"] } },
-};
+import { measurementLabel } from "../../../packages/analytics/metrics";
 export function ObservationChart({
   observations,
   onInspect,
@@ -15,6 +13,12 @@ export function ObservationChart({
   onInspect: (row: any) => void;
 }) {
   const reduced = useReducedMotion();
+  const label = observations.length
+    ? measurementLabel(observations[0])
+    : "Post performance";
+  const chartConfig: ChartConfig = {
+    value: { label, colors: { light: ["#111111", "#797979"] } },
+  };
   const data = observations.map((row, index) => ({
     index: String(index + 1),
     value: Number(row.value),
@@ -23,7 +27,7 @@ export function ObservationChart({
   return (
     <div
       className="observation-chart"
-      aria-label="Views per post at 24 hours. Select a bar to inspect its evidence."
+      aria-label={`${label} per post at 24 hours. Select a bar to inspect its evidence.`}
     >
       <EChartsBarChart
         data={data}

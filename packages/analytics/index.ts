@@ -1,92 +1,15 @@
 import { scoped, one, type Context, type Tx } from "../db";
 import { authorize } from "../domain/auth";
 import { requireCondition } from "../domain/errors";
-export type Availability =
-  "available" | "unsupported" | "unknown" | "permission_missing" | "missed";
-export interface Metric {
-  metric: string;
-  value: number | null;
-  availability: Availability;
-  definition: string;
-  unit: string;
-  scope: "lifetime" | "period";
-  denominator?: string;
-}
-const keys: Record<string, Record<string, string>> = {
-  youtube: {
-    views: "views",
-    likes: "likes",
-    comments: "comments",
-    shares: "shares",
-  },
-  tiktok: {
-    views: "view_count",
-    likes: "like_count",
-    comments: "comment_count",
-    shares: "share_count",
-  },
-  instagram: {
-    views: "views",
-    likes: "likes",
-    comments: "comments",
-    shares: "shares",
-  },
-  facebook: {
-    views: "video_views",
-    likes: "reactions_like",
-    comments: "comments",
-    shares: "shares",
-  },
-  x: {
-    views: "public_metrics.impression_count",
-    likes: "public_metrics.like_count",
-    comments: "public_metrics.reply_count",
-    shares: "public_metrics.retweet_count",
-  },
-  linkedin: { views: "videoViews" },
-};
-const definitions: Record<string, string> = {
-  views:
-    "Lifetime video views; platform-specific view threshold. Compare within account and format only.",
-  likes: "Lifetime likes (Facebook: like reactions).",
-  comments: "Lifetime comments or replies.",
-  shares: "Lifetime shares or reposts.",
-};
-function at(obj: any, path: string) {
-  return path.split(".").reduce((a, k) => a?.[k], obj);
-}
-export function normalizeMetrics(
-  platform: string,
-  raw: Record<string, unknown>,
-  capabilities: Record<string, any>,
-  demo = false,
-): Metric[] {
-  return ["views", "likes", "comments", "shares"].map((metric) => {
-    const state = capabilities.metrics?.[metric] || "unknown";
-    const value = at(
-      raw,
-      demo ? metric : keys[platform]?.[metric] || "__unsupported",
-    );
-    const valid =
-      typeof value === "number" && Number.isFinite(value) && value >= 0;
-    const availability: Availability =
-      state === "permission_missing"
-        ? "permission_missing"
-        : state === "unsupported"
-          ? "unsupported"
-          : valid
-            ? "available"
-            : "unknown";
-    return {
-      metric,
-      value: availability === "available" ? value : null,
-      availability,
-      definition: definitions[metric],
-      unit: "count",
-      scope: "lifetime",
-    };
-  });
-}
+import {
+  periodChanges,
+  recordedChanges,
+  comparableMeasurements,
+  measurementGroups,
+  type Metric,
+} from "./metrics";
+export { normalizeMetrics, periodChanges } from "./metrics";
+export type { Metric, Availability } from "./metrics";
 export function median(values: number[]) {
   if (!values.length) return null;
   const sorted = [...values].sort((a, b) => a - b),
@@ -103,40 +26,6 @@ export function latestLifetime(rows: Record<string, any>[], metric: string) {
       map.set(row.job_id, row);
   }
   return [...map.values()];
-}
-export function periodChanges(
-  rows: Record<string, any>[],
-  metric: string,
-  start: string,
-  end: string,
-) {
-  const jobs = new Map<string, Record<string, any>[]>();
-  for (const row of rows.filter(
-    (x) => x.metric === metric && x.availability === "available",
-  )) {
-    const list = jobs.get(row.job_id) || [];
-    list.push(row);
-    jobs.set(row.job_id, list);
-  }
-  return [...jobs.entries()].map(([jobId, list]) => {
-    const before = list
-        .filter((x) => new Date(x.observed_at) <= new Date(start))
-        .sort((a, b) => +new Date(b.observed_at) - +new Date(a.observed_at))[0],
-      after = list
-        .filter(
-          (x) =>
-            new Date(x.observed_at) <= new Date(end) &&
-            new Date(x.observed_at) > new Date(start),
-        )
-        .sort((a, b) => +new Date(b.observed_at) - +new Date(a.observed_at))[0];
-    return {
-      jobId,
-      change:
-        before && after ? Number(after.value) - Number(before.value) : null,
-      availability:
-        before && after ? "available" : "missing_boundary_observation",
-    };
-  });
 }
 export async function storeMetrics(
   tx: Tx,
@@ -208,12 +97,7 @@ export async function getAnalytics(
       const peers = rows.filter(
         (x) =>
           x.job_id !== row.job_id &&
-          x.account_id === row.account_id &&
-          x.format === row.format &&
-          x.metric === row.metric &&
-          x.horizon_hours === row.horizon_hours &&
-          x.definition === row.definition &&
-          x.denominator === row.denominator &&
+          comparableMeasurements(x, row) &&
           x.availability === "available",
       );
       const baseline = median(peers.map((x) => Number(x.value)));
@@ -239,11 +123,15 @@ export async function getAnalytics(
         Date.parse(x.published_at) >= Date.parse(start) &&
         Date.parse(x.published_at) < Date.parse(end),
     );
-    const changes = periodChanges(rows, "views", start, end).map((x) => ({
+    const nameChange = (x: ReturnType<typeof periodChanges>[number]) => ({
       ...x,
       title: rows.find((r) => r.job_id === x.jobId)?.title,
       handle: rows.find((r) => r.job_id === x.jobId)?.handle,
-    }));
+    });
+    const changes = periodChanges(rows, "views", start, end).map(nameChange);
+    const recorded = recordedChanges(rows, "views", start, end).map(nameChange);
+    const available = latest.filter((row) => row.availability === "available");
+    const groups = measurementGroups(available);
     return {
       observations: baselines,
       period: {
@@ -251,18 +139,27 @@ export async function getAnalytics(
         end,
         postPerformance: periodPosts,
         metricChanges: changes,
-        note: "Post performance includes posts published during this period. Observed changes use actual boundary snapshots; absent boundaries remain unavailable.",
+        recordedChanges: recorded,
+        note: "Post performance uses the latest lifetime counter for posts published during this period. Net changes cover only their displayed interval between recorded updates, not the full date range. Missing or incompatible updates remain unavailable.",
       },
       summary: {
         posts: latest.length,
-        availablePosts: latest.filter((x) => x.availability === "available")
-          .length,
-        medianViews: median(
-          latest
-            .filter((x) => x.availability === "available")
-            .map((x) => Number(x.value)),
-        ),
-        lastObservedAt: rows[0]?.observed_at || null,
+        availablePosts: available.length,
+        medianViews:
+          groups.length === 1 &&
+          groups[0].observations.length === available.length
+            ? median(groups[0].observations.map((row) => Number(row.value)))
+            : null,
+        measurementGroups: groups.map((group) => ({
+          key: group.key,
+          label: group.label,
+          median: median(group.observations.map((row) => Number(row.value))),
+          posts: group.observations.length,
+        })),
+        lastObservedAt:
+          rows.find((row) => row.availability === "available")?.observed_at ||
+          null,
+        lastRecordedAt: rows[0]?.observed_at || null,
       },
       collections: (
         await tx.query(

@@ -7,10 +7,12 @@ import {
   type PublishingProvider,
 } from "../../packages/publishing";
 import { normalizeMetrics, storeMetrics } from "../../packages/analytics";
+import { observationWindow } from "../../packages/analytics/metrics";
 export async function collectDueMetrics(
   provider?: PublishingProvider,
   max = 20,
   jobId?: string,
+  clock: () => Date = () => new Date(),
 ) {
   let count = 0;
   for (let n = 0; n < max; n++) {
@@ -41,15 +43,17 @@ export async function collectDueMetrics(
     try {
       if (!data.job || data.job.state !== "published" || !data.account)
         throw new Error("Publication is not confirmed.");
-      const stale =
-        getConfig().mode === "live" &&
-        Date.now() - new Date(claim.due_at).getTime() > 15 * 60000;
-      if (stale) {
+      const intended = observationWindow(
+        data.job.published_at,
+        claim.horizon_hours,
+        clock(),
+      ).intendedAt;
+      const recordMissed = async (recordedAt: Date) => {
         await scoped(ctx, async (tx) => {
           if (
             !(await one(
               tx,
-              "select id from metric_collection_jobs where id=$1 and lease_token=$2 for update",
+              "select id from metric_collection_jobs where id=$1 and lease_token=$2 and lease_expires_at>now() for update",
               [claim.id, lease],
             ))
           )
@@ -58,8 +62,8 @@ export async function collectDueMetrics(
             data.account!.platform,
             {},
             data.account!.capabilities,
-          ).map((x) => ({
-            ...x,
+          ).map((row) => ({
+            ...row,
             value: null,
             availability: "missed" as const,
           }));
@@ -73,13 +77,23 @@ export async function collectDueMetrics(
             {
               reason:
                 "Scheduled observation was missed; historical value is unavailable.",
+              intendedAt: intended,
+              missRecordedAt: recordedAt.toISOString(),
             },
+            recordedAt.toISOString(),
           );
           await tx.query(
             "update metric_collection_jobs set state='missed',error='Historical observation unavailable',lease_token=null,lease_expires_at=null where id=$1 and lease_token=$2",
             [claim.id, lease],
           );
         });
+      };
+      if (
+        getConfig().mode === "live" &&
+        observationWindow(data.job.published_at, claim.horizon_hours, clock())
+          .missed
+      ) {
+        await recordMissed(clock());
         continue;
       }
       const activeProvider =
@@ -88,6 +102,18 @@ export async function collectDueMetrics(
         data.account.provider_account_id,
         data.job!.platform_post_id,
       );
+      const collectedAt = clock();
+      if (
+        getConfig().mode === "live" &&
+        observationWindow(
+          data.job.published_at,
+          claim.horizon_hours,
+          collectedAt,
+        ).missed
+      ) {
+        await recordMissed(collectedAt);
+        continue;
+      }
       const post = posts.find(
         (x) => x.platformPostId === data.job!.platform_post_id,
       );
@@ -97,15 +123,15 @@ export async function collectDueMetrics(
         data.account.capabilities,
         getConfig().mode === "demo",
       );
-      await scoped(ctx, async (tx) => {
+      const stored = await scoped(ctx, async (tx) => {
         if (
           !(await one(
             tx,
-            "select id from metric_collection_jobs where id=$1 and lease_token=$2 for update",
+            "select id from metric_collection_jobs where id=$1 and lease_token=$2 and lease_expires_at>now() for update",
             [claim.id, lease],
           ))
         )
-          return;
+          return false;
         await storeMetrics(
           tx,
           ctx.workspaceId,
@@ -114,6 +140,7 @@ export async function collectDueMetrics(
           claim.horizon_hours,
           metrics,
           post?.raw || { reason: "Metric absent from permitted feed response" },
+          collectedAt.toISOString(),
         );
         await tx.query(
           "update metric_collection_jobs set state='done',error=null,lease_token=null,lease_expires_at=null where id=$1 and workspace_id=$2 and lease_token=$3",
@@ -123,12 +150,13 @@ export async function collectDueMetrics(
           horizonHours: claim.horizon_hours,
           provenance: data.account!.provenance,
         });
+        return true;
       });
-      count++;
+      if (stored) count++;
     } catch (e) {
       await scoped(ctx, async (tx) => {
         await tx.query(
-          "update metric_collection_jobs set state=case when retry_count>=3 then 'failed' else 'queued' end,error=$1,retry_count=retry_count+1,due_at=now()+interval '60 seconds',lease_token=null,lease_expires_at=null where id=$2 and workspace_id=$3 and lease_token=$4",
+          "update metric_collection_jobs set state=case when retry_count>=3 then 'failed' else 'queued' end,error=$1,retry_count=retry_count+1,due_at=now()+interval '60 seconds',lease_token=null,lease_expires_at=null where id=$2 and workspace_id=$3 and lease_token=$4 and lease_expires_at>now()",
           [safeError(e), claim.id, ctx.workspaceId, lease],
         );
       });

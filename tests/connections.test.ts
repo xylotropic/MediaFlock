@@ -1,3 +1,5 @@
+import { collectDueMetrics } from "../apps/worker/analytics";
+import { getAnalytics } from "../packages/analytics";
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { db, closeDb, type Context } from "../packages/db";
@@ -746,6 +748,207 @@ describe("Live connection contracts against isolated local persistence and trans
           )
         ).rows[0].n,
       ).toBe(before);
+    } finally {
+      delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
+    }
+  });
+  it("does not let a metrics retry move the original observation horizon", async () => {
+    process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED = "true";
+    try {
+      const { job } = await preparedLiveDelivery();
+      await db().query(
+        "update publish_jobs set state='published',platform_post_id=$2,published_at=now()-interval '2 hours' where id=$1",
+        [job!.id, "fixture-native-" + job!.id],
+      );
+      const collection = (
+        await db().query(
+          "insert into metric_collection_jobs(workspace_id,job_id,horizon_hours,due_at,retry_count) values($1,$2,1,now(),1) returning id",
+          [ctx.workspaceId, job!.id],
+        )
+      ).rows[0];
+      let reads = 0;
+      await collectDueMetrics(
+        {
+          ...acceptedFixture,
+          feed: async () => {
+            reads++;
+            return [];
+          },
+        },
+        1,
+        job!.id,
+      );
+      expect(
+        (
+          await db().query(
+            "select state from metric_collection_jobs where id=$1",
+            [collection.id],
+          )
+        ).rows[0].state,
+      ).toBe("missed");
+      expect(reads).toBe(0);
+      const observations = (
+        await db().query(
+          "select availability,value from metric_snapshots where job_id=$1",
+          [job!.id],
+        )
+      ).rows;
+      expect(observations).toHaveLength(4);
+      expect(
+        observations.every(
+          (row) => row.availability === "missed" && row.value === null,
+        ),
+      ).toBe(true);
+    } finally {
+      delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
+    }
+  });
+  it.each(["cutoff", "replaced lease", "expired lease"])(
+    "discards a metrics response after its %s",
+    async (caseName) => {
+      process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED = "true";
+      try {
+        const { job } = await preparedLiveDelivery();
+        const publishedAt = new Date(Date.now() - 3600000);
+        await db().query(
+          "update publish_jobs set state='published',platform_post_id=$2,published_at=$3 where id=$1",
+          [job!.id, "fixture-native-" + job!.id, publishedAt],
+        );
+        const collection = (
+          await db().query(
+            "insert into metric_collection_jobs(workspace_id,job_id,horizon_hours,due_at) values($1,$2,1,now()) returning id",
+            [ctx.workspaceId, job!.id],
+          )
+        ).rows[0];
+        let observedAt = new Date(publishedAt.getTime() + 3600000 + 899000);
+        const replacement = randomUUID();
+        const collected = await collectDueMetrics(
+          {
+            ...acceptedFixture,
+            feed: async () => {
+              if (caseName === "cutoff")
+                observedAt = new Date(publishedAt.getTime() + 3600000 + 901000);
+              else if (caseName === "replaced lease")
+                await db().query(
+                  "update metric_collection_jobs set lease_token=$1 where id=$2",
+                  [replacement, collection.id],
+                );
+              else
+                await db().query(
+                  "update metric_collection_jobs set lease_expires_at=now()-interval '1 second' where id=$1",
+                  [collection.id],
+                );
+              return [
+                {
+                  platformPostId: "fixture-native-" + job!.id,
+                  metrics: { public_metrics: { impression_count: 500 } },
+                  raw: { fixture: true },
+                },
+              ];
+            },
+          },
+          1,
+          job!.id,
+          () => observedAt,
+        );
+        expect(collected).toBe(0);
+        const result = (
+          await db().query("select * from metric_collection_jobs where id=$1", [
+            collection.id,
+          ])
+        ).rows[0];
+        const metrics = (
+          await db().query("select * from metric_snapshots where job_id=$1", [
+            job!.id,
+          ])
+        ).rows;
+        expect(result.state).toBe(caseName === "cutoff" ? "missed" : "running");
+        if (caseName === "cutoff") {
+          expect(metrics).toHaveLength(4);
+          expect(
+            metrics.every(
+              (row) => row.value === null && row.availability === "missed",
+            ),
+          ).toBe(true);
+          expect(metrics[0].raw.intendedAt).toBe(
+            new Date(publishedAt.getTime() + 3600000).toISOString(),
+          );
+        } else {
+          expect(metrics).toHaveLength(0);
+          if (caseName === "replaced lease")
+            expect(result.lease_token).toBe(replacement);
+        }
+        expect(
+          (
+            await db().query(
+              "select id from audit_events where resource_id=$1 and action='metrics.collected'",
+              [job!.id],
+            )
+          ).rows,
+        ).toHaveLength(0);
+      } finally {
+        delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
+      }
+    },
+  );
+  it("keeps a real zero and the exact retrieval time separate from later missed records", async () => {
+    process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED = "true";
+    try {
+      const { job } = await preparedLiveDelivery();
+      const collectedAt = new Date();
+      await db().query(
+        "update publish_jobs set state='published',platform_post_id=$2,published_at=$3 where id=$1",
+        [
+          job!.id,
+          "fixture-native-" + job!.id,
+          new Date(collectedAt.getTime() - 3600000),
+        ],
+      );
+      await db().query(
+        "insert into metric_collection_jobs(workspace_id,job_id,horizon_hours,due_at) values($1,$2,1,now())",
+        [ctx.workspaceId, job!.id],
+      );
+      expect(
+        await collectDueMetrics(
+          {
+            ...acceptedFixture,
+            feed: async () => [
+              {
+                platformPostId: "fixture-native-" + job!.id,
+                metrics: { public_metrics: { impression_count: 0 } },
+                raw: { fixture: true },
+              },
+            ],
+          },
+          1,
+          job!.id,
+          () => collectedAt,
+        ),
+      ).toBe(1);
+      let result = await getAnalytics(ctx, job!.account_id);
+      expect(result.summary.medianViews).toBe(0);
+      expect(new Date(result.summary.lastObservedAt!).getTime()).toBe(
+        collectedAt.getTime(),
+      );
+      await db().query(
+        "insert into metric_snapshots(workspace_id,account_id,job_id,platform_post_id,metric,definition,value,unit,scope,availability,horizon_hours,observed_at,provenance,raw) values($1,$2,$3,$4,'views','Unavailable later observation',null,'count','lifetime','missed',24,$5,'provider','{}')",
+        [
+          ctx.workspaceId,
+          job!.account_id,
+          job!.id,
+          "fixture-native-" + job!.id,
+          new Date(collectedAt.getTime() + 60000),
+        ],
+      );
+      result = await getAnalytics(ctx, job!.account_id);
+      expect(new Date(result.summary.lastObservedAt!).getTime()).toBe(
+        collectedAt.getTime(),
+      );
+      expect(new Date(result.summary.lastRecordedAt!).getTime()).toBe(
+        collectedAt.getTime() + 60000,
+      );
+      expect(result.summary.medianViews).toBeNull();
+      expect(result.summary.availablePosts).toBe(0);
     } finally {
       delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
     }
