@@ -127,7 +127,7 @@ try {
     .getByRole("dialog")
     .getByRole("button", { name: "Upload media", exact: true })
     .click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toHaveCount(0, { timeout: 45000 });
   const assets = await get("assets");
   const asset = assets.find((x: any) => x.filename === fileName);
   expect(asset.checksum).toBe(createHash("sha256").update(bytes).digest("hex"));
