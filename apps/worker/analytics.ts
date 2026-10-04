@@ -19,7 +19,7 @@ export async function collectDueMetrics(
     const lease = randomUUID();
     const claim = (
       await db().query(
-        `with c as (select mc.id from metric_collection_jobs mc join workspaces w on w.id=mc.workspace_id where w.mode=$1 and ($3::uuid is null or mc.job_id=$3) and mc.state in ('queued','running') and mc.due_at<=now() and (mc.lease_expires_at is null or mc.lease_expires_at<now()) order by mc.due_at for update of mc skip locked limit 1) update metric_collection_jobs mc set state='running',lease_token=$2,lease_expires_at=now()+interval '60 seconds' from c where mc.id=c.id returning mc.*`,
+        `with c as (select mc.id from metric_collection_jobs mc join workspaces w on w.id=mc.workspace_id join publish_jobs pj on pj.id=mc.job_id and pj.workspace_id=mc.workspace_id where w.mode=$1 and ($3::uuid is null or mc.job_id=$3) and mc.state in ('queued','running') and mc.due_at<=now() and (mc.lease_expires_at is null or mc.lease_expires_at<now()) order by pj.published_at+(mc.horizon_hours*interval '1 hour') nulls last,mc.due_at for update of mc skip locked limit 1) update metric_collection_jobs mc set state='running',lease_token=$2,lease_expires_at=now()+interval '60 seconds' from c where mc.id=c.id returning mc.*`,
         [getConfig().mode, lease, jobId || null],
       )
     ).rows[0];

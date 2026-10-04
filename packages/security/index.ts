@@ -1,7 +1,9 @@
 import { lookup } from "node:dns/promises";
+import { Resolver } from "node:dns/promises";
 import { BlockList, isIP } from "node:net";
 import { request } from "node:https";
 import { DomainError } from "../domain/errors";
+import { workerTimeout, remainingWorkerTime } from "../worker/budget";
 const blocked = new BlockList();
 const blockedV6 = new BlockList();
 for (const [address, prefix] of [
@@ -53,13 +55,41 @@ export async function validatedUploadTarget(url: string, resolver = lookup) {
     throw new DomainError("unsafe_url", "Unsafe provider upload URL.");
   const addresses = isIP(host)
     ? [{ address: host, family: isIP(host) }]
-    : await resolver(host, { all: true });
+    : resolver === lookup && remainingWorkerTime("provider") !== null
+      ? await cloudUploadAddresses(host)
+      : await resolver(host, { all: true });
   if (!addresses.length || addresses.some((x) => !isPublicAddress(x.address)))
     throw new DomainError(
       "unsafe_url",
       "Provider upload must resolve exclusively to public addresses.",
     );
   return { target, address: addresses[0].address, family: addresses[0].family };
+}
+async function cloudUploadAddresses(host: string) {
+  const limit = workerTimeout(5000);
+  const resolver = new Resolver({ timeout: limit, tries: 1 });
+  const timer = setTimeout(() => resolver.cancel(), limit);
+  try {
+    const result = await Promise.allSettled([
+      resolver.resolve4(host),
+      resolver.resolve6(host),
+    ]);
+    const addresses: { address: string; family: number }[] = [];
+    for (const [index, entry] of result.entries()) {
+      if (entry.status === "fulfilled")
+        addresses.push(
+          ...entry.value.map((address) => ({ address, family: index ? 6 : 4 })),
+        );
+      else if (!["ENODATA", "ENOTFOUND"].includes(entry.reason?.code))
+        throw new DomainError(
+          "unsafe_url",
+          "Provider upload address could not be verified in time.",
+        );
+    }
+    return addresses;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 // Pin the checked address on the connection; preserve TLS hostname verification and never redirect.
 // Node contracts: https://nodejs.org/api/https.html and https://nodejs.org/api/net.html#class-netblocklist
@@ -75,7 +105,7 @@ export async function uploadPublicBytes(
       {
         method: "PUT",
         agent: false,
-        signal: AbortSignal.timeout(120000),
+        signal: AbortSignal.timeout(workerTimeout(120000)),
         headers: {
           "Content-Type": contentType,
           "Content-Length": String(bytes.length),

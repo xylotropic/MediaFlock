@@ -4385,9 +4385,46 @@ export function SettingsPage() {
         <h2>Background processing</h2>
         <div className="row">
           <span className="dot" />
+          <strong>This Mac · media processing</strong>
           <span>{worker?.healthy ? "Running" : "Offline"}</span>
         </div>
         {worker?.last_error && <ErrorNote message={worker.last_error} />}
+        <div className="row">
+          <span className="dot" />
+          <strong>Cloud · posting and Analytics</strong>
+          <span>
+            {!data.cloud?.enabled
+              ? "Awaiting setup"
+              : !data.cloud?.work_enabled
+                ? "Work disabled"
+                : data.cloud?.heartbeat_fresh
+                  ? "Running"
+                  : "No recent heartbeat"}
+          </span>
+        </div>
+        {data.cloud?.last_completed_at && (
+          <p className="tiny muted">
+            Last cloud run:{" "}
+            <LocalTime
+              value={data.cloud.last_completed_at}
+              timezone={timezone}
+            />
+          </p>
+        )}
+        <p className="small muted">
+          Media preparation runs on your Mac. Cloud posting needs a configured
+          hosting timer and your final approval for every post.
+        </p>
+        {data.cloud?.last_work_error && (
+          <ErrorNote message={data.cloud.last_work_error} />
+        )}
+        {(data.workHealth?.unresolved_deliveries > 0 ||
+          data.workHealth?.metrics_attention > 0) && (
+          <p className="small muted">
+            {data.workHealth.unresolved_deliveries} deliveries need confirmation
+            · {data.workHealth.metrics_attention} measurements need attention.
+          </p>
+        )}
       </section>
       {recoveryEnabled && (
         <section className="settings-section stack">

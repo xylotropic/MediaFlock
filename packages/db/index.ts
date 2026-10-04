@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { getConfig } from "../domain/config";
 import { DomainError } from "../domain/errors";
 import { guardContextSecurity } from "../domain/session-security";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { remainingWorkerTime, workerTimeout } from "../worker/budget";
 export interface Context {
   workspaceId: string;
   userId: string;
@@ -16,36 +18,92 @@ export interface Context {
 }
 export type Tx = pg.PoolClient;
 let pool: pg.Pool | undefined;
+const boundedPool = new AsyncLocalStorage<pg.Pool>();
+function createPool(
+  max = getConfig().databasePoolMax,
+  connectionTimeout = 5000,
+) {
+  const created = new pg.Pool({
+    connectionString: getConfig().databaseUrl,
+    ssl:
+      getConfig().databaseTls ||
+      getConfig().databaseCaFile ||
+      getConfig().databaseCa
+        ? {
+            ca:
+              getConfig().databaseCa ||
+              (getConfig().databaseCaFile
+                ? readFileSync(getConfig().databaseCaFile!, "utf8")
+                : undefined),
+            rejectUnauthorized: true,
+          }
+        : undefined,
+    max,
+    idleTimeoutMillis: 5000,
+    connectionTimeoutMillis: connectionTimeout,
+    statement_timeout: 15000,
+    lock_timeout: 10000,
+    idle_in_transaction_session_timeout: 20000,
+  });
+  created.on("error", () =>
+    console.error("Database pool connection interrupted."),
+  );
+  return created;
+}
 export function db() {
+  const isolated = boundedPool.getStore();
+  if (isolated) return isolated;
   if (!pool) {
-    pool = new pg.Pool({
-      connectionString: getConfig().databaseUrl,
-      ssl:
-        getConfig().databaseTls ||
-        getConfig().databaseCaFile ||
-        getConfig().databaseCa
-          ? {
-              ca:
-                getConfig().databaseCa ||
-                (getConfig().databaseCaFile
-                  ? readFileSync(getConfig().databaseCaFile!, "utf8")
-                  : undefined),
-              rejectUnauthorized: true,
-            }
-          : undefined,
-      max: getConfig().databasePoolMax,
-      idleTimeoutMillis: 5000,
-      connectionTimeoutMillis: 5000,
-      statement_timeout: 15000,
-      lock_timeout: 10000,
-      idle_in_transaction_session_timeout: 20000,
-    });
+    pool = createPool();
     if (process.env.VERCEL) attachDatabasePool(pool);
-    pool.on("error", () => {
-      console.error("Database pool connection interrupted.");
-    });
   }
   return pool;
+}
+// A deadline may shorten server timeouts only on this invocation's private pool.
+// Returning the connection to the normal application pool would leak its settings.
+export async function withWorkerDatabase<T>(run: () => Promise<T>) {
+  if (remainingWorkerTime("database") === null)
+    throw Error("A worker database deadline is required.");
+  const isolated = createPool(2, workerTimeout(5000, "database"));
+  isolated.on("connect", (client) => {
+    const original = client.query.bind(client) as (...args: any[]) => any;
+    client.query = ((...args: any[]) => {
+      const callback = typeof args.at(-1) === "function" ? args.pop() : null;
+      const execute = async () => {
+        const text = typeof args[0] === "string" ? args[0] : args[0]?.text;
+        if (/^\s*(rollback|commit)\s*;?\s*$/i.test(text || ""))
+          return original({ text, query_timeout: 5000 });
+        const limit = workerTimeout(15000, "database");
+        await original({
+          text: "select set_config('statement_timeout',$1,false),set_config('lock_timeout',$2,false)",
+          values: [String(limit), String(Math.min(limit, 10000))],
+          query_timeout: limit,
+        });
+        const query =
+          typeof args[0] === "string"
+            ? { text: args[0], values: args[1] }
+            : { ...args[0] };
+        return original({
+          ...query,
+          query_timeout: workerTimeout(15000, "database"),
+        });
+      };
+      const result = execute();
+      if (callback) {
+        void result.then(
+          (value) => callback(null, value),
+          (error) => callback(error),
+        );
+        return;
+      }
+      return result;
+    }) as typeof client.query;
+  });
+  try {
+    return await boundedPool.run(isolated, run);
+  } finally {
+    await isolated.end();
+  }
 }
 export async function scoped<T>(
   ctx: Context,

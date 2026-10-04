@@ -14,6 +14,7 @@ import { tokenInput } from "../schemas";
 import { ensureRegisteredWorkspace } from "./registration";
 import { validateHumanSession, verifiedSessionId } from "./session-security";
 import { localRequestAuthority } from "./local-request";
+import { remainingWorkerTime, workerFetch } from "../worker/budget";
 export const hash = (value: string) =>
   createHash("sha256").update(value).digest("hex");
 export function canonical(value: unknown): string {
@@ -34,6 +35,9 @@ export function storageAdmin() {
   const c = getConfig();
   return createClient(c.supabaseUrl, c.serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    ...(remainingWorkerTime("provider") !== null
+      ? { global: { fetch: workerFetch } }
+      : {}),
   });
 }
 export async function authClient(options: { timeoutMs?: number } = {}) {

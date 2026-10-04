@@ -95,6 +95,18 @@ export async function settings(ctx: Context) {
         "select id,started_at,heartbeat_at,status,jobs_processed,last_error,(status='running' and heartbeat_at>now()-interval '60 seconds') as healthy from worker_health order by heartbeat_at desc limit 3",
       )
     ).rows,
+    cloud: (
+      await db().query(
+        "select enabled,work_enabled,last_started_at,last_completed_at,last_work_error,last_work_error_at,(enabled and last_completed_at>now()-interval '2 minutes') as heartbeat_fresh from cloud_worker_control where mode=$1",
+        [c.mode],
+      )
+    ).rows[0],
+    workHealth: (
+      await db().query(
+        "select (select count(*)::int from publish_jobs where workspace_id=$1 and state='needs_reconciliation') unresolved_deliveries,(select count(*)::int from metric_collection_jobs where workspace_id=$1 and (state in('failed','missed') or (state in('queued','running') and error is not null))) metrics_attention",
+        [ctx.workspaceId],
+      )
+    ).rows[0],
     integrations: {
       mode: c.mode,
       publishing:

@@ -1,4 +1,5 @@
 import { effectiveSettings } from "./validation";
+import { workerTimeout } from "../worker/budget";
 import { uploadPublicBytes } from "../security";
 import { z } from "zod";
 import { getConfig } from "../domain/config";
@@ -113,7 +114,7 @@ export class PostForMeProvider implements PublishingProvider {
           "Content-Type": "application/json",
         },
         body: body ? JSON.stringify(body) : undefined,
-        signal: AbortSignal.timeout(20000),
+        signal: AbortSignal.timeout(workerTimeout(20000)),
         redirect: "error",
       });
     } catch {

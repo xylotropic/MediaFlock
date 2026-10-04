@@ -39,3 +39,7 @@ _Avoid_: Cancellation request, deletion acknowledgment
 **Metric Observation**:
 A measured result for a published post, with its meaning and observation time.
 _Avoid_: Estimated result, cumulative snapshot total
+
+**Cloud Tick**:
+A bounded cloud run that inspects existing Approved Deliveries and Metric Observations. It cannot give Final Approval or prepare original media.
+_Avoid_: Automatic approval, always-on media processing
