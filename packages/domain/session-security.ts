@@ -1,3 +1,4 @@
+import { requestApprovalCancellation } from "./approved-delivery";
 import type { Context, Tx } from "../db";
 import { DomainError, requireCondition } from "./errors";
 
@@ -142,14 +143,20 @@ export async function beginAccountSecurityReset(
       [userId],
     )
   ).rows;
-  const jobs = approvals.length
-    ? (
-        await tx.query(
-          "update publish_jobs j set cancel_requested=true,next_run_at=clock_timestamp(),updated_at=clock_timestamp() from publication_targets t where t.id=j.target_id and t.approval_id=any($1::uuid[]) and j.state not in ('published','failed','cancelled') returning j.id,j.workspace_id",
-          [approvals.map((approval) => approval.id)],
-        )
-      ).rows
-    : [];
+  const jobs = [];
+  for (const workspaceId of [
+    ...new Set(approvals.map((row) => row.workspace_id)),
+  ].sort())
+    jobs.push(
+      ...(await requestApprovalCancellation(
+        tx,
+        workspaceId,
+        approvals
+          .filter((row) => row.workspace_id === workspaceId)
+          .map((row) => row.id),
+        "wall",
+      )),
+    );
   const workspaces = new Set(
     [...tokens, ...approvals, ...jobs].map((row) => row.workspace_id as string),
   );

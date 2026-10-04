@@ -1,3 +1,4 @@
+import { requireApprovingOwner } from "../packages/domain/approved-delivery";
 import { afterAll, beforeAll, describe, it, expect } from "vitest";
 import { readFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
@@ -371,6 +372,108 @@ describe("Real local database, authorization and immutable content", () => {
   });
 });
 describe("Approval and reliable delivery state machines", () => {
+  it("requires the owner's final approval while reviewers can still edit drafts", async () => {
+    const local = await fixture("owner final approval");
+    const { variant } = await draft(local.ctx, local.account.id);
+    const approval = await domain.requestApproval(local.ctx, {
+      variantId: variant.id,
+      revisionId: variant.current_revision_id,
+      scheduledAt: new Date(Date.now() + 3600000).toISOString(),
+    });
+    await db().query(
+      "update memberships set role='reviewer' where workspace_id=$1 and user_id=$2",
+      [local.ctx.workspaceId, local.ctx.userId],
+    );
+    const reviewer = { ...local.ctx, role: "reviewer" as const };
+    await expect(
+      domain.decideApproval(reviewer, approval!.id, "approved"),
+    ).rejects.toMatchObject({ code: "human_approval_required" });
+    const edited = await domain.editVariant(
+      reviewer,
+      variant.id,
+      variant.current_revision_id,
+      { ...variant.payload, caption: "Reviewer draft correction" },
+    );
+    expect(edited.payload.caption).toBe("Reviewer draft correction");
+    expect(
+      (await domain.listApprovals(reviewer)).find(
+        (row) => row.id === approval!.id,
+      )?.status,
+    ).toBe("revoked");
+  });
+  it("rechecks the approving owner's role before scheduling and dispatch", async () => {
+    const local = await fixture("owner authorization changes");
+    const beforeScheduling = await approved(local.ctx, local.account.id);
+    const beforeDispatch = await delivery(local.ctx, local.account.id);
+    await db().query(
+      "update memberships set role='reviewer' where workspace_id=$1 and user_id=$2",
+      [local.ctx.workspaceId, local.ctx.userId],
+    );
+    const reviewer = { ...local.ctx, role: "reviewer" as const };
+    await expect(
+      domain.scheduleApproved(reviewer, beforeScheduling.approval!.id),
+    ).rejects.toMatchObject({ code: "approval_owner_required" });
+    const claim = await claimJob(beforeDispatch.job.id);
+    expect(claim).toBeTruthy();
+    await processJob(claim!, provider);
+    const job = await domain.getJob(reviewer, beforeDispatch.job.id);
+    expect(job.state).toBe("failed");
+    expect(job.error.code).toBe("approval_owner_required");
+    expect(job.attempts).toHaveLength(0);
+    expect(
+      (
+        await db().query(
+          "select count(*)::int n from demo_provider_calls c join publication_targets t on t.local_key=c.local_key where t.id=$1 and c.operation='submit'",
+          [beforeDispatch.job.target_id],
+        )
+      ).rows[0].n,
+    ).toBe(0);
+  });
+  it("fences owner demotion without giving the runtime membership write rights", async () => {
+    const local = await fixture("owner row fence");
+    await scoped(local.ctx, async (tx) => {
+      await requireApprovingOwner(tx, local.ctx.workspaceId, local.ctx.userId);
+      const writer = await db().connect();
+      try {
+        await writer.query("begin");
+        await writer.query("set local lock_timeout='100ms'");
+        await expect(
+          writer.query(
+            "update memberships set role='reviewer' where workspace_id=$1 and user_id=$2",
+            [local.ctx.workspaceId, local.ctx.userId],
+          ),
+        ).rejects.toMatchObject({ code: "55P03" });
+      } finally {
+        await writer.query("rollback");
+        writer.release();
+      }
+    });
+    await expect(
+      scoped(local.ctx, (tx) =>
+        tx.query(
+          "update memberships set role='reviewer' where workspace_id=$1 and user_id=$2",
+          [local.ctx.workspaceId, local.ctx.userId],
+        ),
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await expect(
+      scoped(a.ctx, (tx) =>
+        tx.query("select public.mf_approval_owner_current($1::uuid,$2::uuid)", [
+          b.ctx.workspaceId,
+          b.ctx.userId,
+        ]),
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await db().query(
+      "update memberships set role='reviewer' where workspace_id=$1 and user_id=$2",
+      [local.ctx.workspaceId, local.ctx.userId],
+    );
+    await expect(
+      scoped({ ...local.ctx, role: "reviewer" }, (tx) =>
+        requireApprovingOwner(tx, local.ctx.workspaceId, local.ctx.userId),
+      ),
+    ).rejects.toMatchObject({ code: "approval_owner_required" });
+  });
   it("invalidates exact-revision approval after an edit", async () => {
     const { variant, approval } = await approved(a.ctx, a.account.id);
     await domain.editVariant(a.ctx, variant.id, variant.current_revision_id, {

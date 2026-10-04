@@ -7,6 +7,12 @@ import type { DeliveryEnvelope } from "../publishing/provider";
 import { ProviderError } from "../publishing/provider";
 import { integrationFingerprint } from "./integrations";
 import { getConfig } from "./config";
+import {
+  requireFinalApprovalOwner,
+  requireApprovingOwner,
+  activeDeliveryForVariant,
+  requestApprovalCancellation,
+} from "./approved-delivery";
 export async function snapshotFor(
   tx: Tx,
   ctx: Context,
@@ -149,7 +155,8 @@ export async function decideApproval(
   decision: "approved" | "rejected",
   reason = "",
 ) {
-  humanReviewer(ctx);
+  if (decision === "approved") requireFinalApprovalOwner(ctx);
+  else humanReviewer(ctx);
   return scoped(ctx, async (tx) => {
     const initial = await one(
       tx,
@@ -167,6 +174,8 @@ export async function decideApproval(
       "select * from approvals where id=$1 and workspace_id=$2 for update",
       [id, ctx.workspaceId],
     );
+    if (decision === "approved")
+      await requireApprovingOwner(tx, ctx.workspaceId, ctx.userId);
     requireCondition(
       approval?.status === "pending",
       "approval_state",
@@ -237,10 +246,7 @@ export async function revokeApproval(ctx: Context, id: string, reason: string) {
       "Approval is already inactive.",
       409,
     );
-    await tx.query(
-      "update publish_jobs j set cancel_requested=true,next_run_at=now(),updated_at=now() from publication_targets t where t.id=j.target_id and t.approval_id=$1 and j.state not in ('published','failed','cancelled')",
-      [id],
-    );
+    await requestApprovalCancellation(tx, ctx.workspaceId, [id]);
     await audit(tx, ctx, "approval.revoked", "approval", id, { reason });
     return row;
   });
@@ -276,6 +282,7 @@ export async function eligible(
     "Approval is for an older revision.",
     409,
   );
+  await requireApprovingOwner(tx, ctx.workspaceId, approval.approved_by);
   const account = await one(
     tx,
     "select * from social_accounts where id=$1 and workspace_id=$2 for share",
@@ -400,10 +407,10 @@ export async function scheduleApproved(ctx: Context, id: string) {
     );
     if (existing) return existing;
     await eligible(tx, ctx, approval, variant);
-    const active = await one(
+    const active = await activeDeliveryForVariant(
       tx,
-      `select j.id from publish_jobs j join publication_targets t on t.id=j.target_id join approvals a on a.id=t.approval_id where a.variant_id=$1 and j.state not in ('failed','cancelled','published')`,
-      [variant.id],
+      ctx.workspaceId,
+      variant.id,
     );
     requireCondition(
       !active,

@@ -12,12 +12,18 @@ import {
   saveIntegration,
   checkIntegration,
   listIntegrations,
+  removeIntegration,
 } from "../packages/domain/integrations";
 import { PostForMeProvider } from "../packages/publishing/postforme";
+import {
+  ProviderError,
+  type PublishingProvider,
+} from "../packages/publishing/provider";
 import { createToken, tokenContext } from "../packages/domain/auth";
 import * as domain from "../packages/domain";
 import { claimJob, processJob } from "../apps/worker/publishing";
 import { writingGuidance } from "../packages/ai/writing-guidance";
+import { due } from "./helpers";
 let ctx: Context;
 const accountId = "fixture-" + randomUUID(),
   secondId = "fixture-" + randomUUID();
@@ -65,6 +71,107 @@ const provider = new PostForMeProvider(
   "fixture-provider-key",
   true,
 );
+async function preparedLiveDelivery() {
+  await saveIntegration(ctx, "postforme", {
+    apiKey: "fixture-provider-key",
+    enabled: true,
+    config: { connectionCallbackConfigured: true, publishingEnabled: true },
+  });
+  const providerAccountId = "fixture-delivery-" + randomUUID();
+  let deliveryBinding = "";
+  const connectionProvider = new PostForMeProvider(
+    async (url, init) => {
+      if (url.endsWith("/auth-url")) {
+        const body = JSON.parse(String(init.body));
+        deliveryBinding = body.external_id;
+        return response({
+          url: "https://fixture.invalid/authorize",
+          platform: body.platform,
+        });
+      }
+      const row = {
+        ...account(providerAccountId),
+        external_id: deliveryBinding,
+      };
+      return response(
+        url.includes("?external_id=")
+          ? { data: [row], meta: { next: null } }
+          : row,
+      );
+    },
+    "fixture-provider-key",
+    true,
+  );
+  const pending = await beginConnection(ctx, "x", "oauth2", connectionProvider);
+  const connected = await finishConnection(
+    ctx,
+    pending.state,
+    connectionProvider,
+    true,
+  );
+  const current = connected.accounts[0];
+  await recordCapabilityReview(
+    ctx,
+    current.id,
+    {
+      connectionGeneration: current.connection_generation,
+      capabilityGeneration: current.capability_generation,
+      accountType: "x_account",
+      formats: ["text"],
+      publishingGranted: true,
+      feedsGranted: true,
+      evidence: "Owner checked permissions for this isolated provider fixture.",
+    },
+    connectionProvider,
+  );
+  const pkg = await domain.createPackage(ctx, {
+    title: "Accepted delivery fixture",
+  });
+  const variant = await domain.createVariant(ctx, {
+    packageId: pkg!.id,
+    accountId: current.id,
+    format: "text",
+    payload: {
+      hook: "Approved fixture",
+      caption: "Exact owner-approved content",
+    },
+  });
+  const approval = await domain.requestApproval(ctx, {
+    variantId: variant.id,
+    revisionId: variant.current_revision_id,
+    scheduledAt: new Date(Date.now() + 3600000).toISOString(),
+  });
+  await domain.decideApproval(ctx, approval!.id, "approved");
+  const job = await domain.scheduleApproved(ctx, approval!.id);
+  return { variant, approval, job };
+}
+const acceptedFixture: PublishingProvider = {
+  submit: async (envelope) => ({
+    state: "scheduled",
+    authoritative: true,
+    raw: {},
+    providerJobId: "fixture-accepted-" + envelope.variantId,
+  }),
+  status: async (id) => ({
+    state: "scheduled",
+    authoritative: true,
+    raw: {},
+    providerJobId: id,
+  }),
+  reconcile: async (_localKey, _snapshotHash, envelope) => ({
+    state: "scheduled",
+    authoritative: true,
+    raw: {},
+    providerJobId: "fixture-accepted-" + envelope.variantId,
+  }),
+  cancel: async (id) => ({
+    state: "uncertain",
+    authoritative: false,
+    raw: {},
+    providerJobId: id,
+  }),
+  feed: async () => [],
+};
 beforeAll(async () => {
   if (
     getConfig().mode !== "demo" ||
@@ -379,6 +486,269 @@ describe("Live connection contracts against isolated local persistence and trans
     expect(JSON.stringify(await listIntegrations(ctx))).not.toContain(
       "fixture-key-rotated",
     );
+  });
+  it("keeps an accepted schedule active when its credentials are disabled", async () => {
+    process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED = "true";
+    try {
+      const { variant, approval, job } = await preparedLiveDelivery();
+      await processJob((await claimJob(job!.id))!, acceptedFixture);
+      expect((await domain.getJob(ctx, job!.id)).state).toBe("scheduled");
+      await saveIntegration(ctx, "postforme", { enabled: false });
+      await due(job!.id);
+      await processJob((await claimJob(job!.id))!);
+      const unresolved = await domain.getJob(ctx, job!.id);
+      expect(unresolved.state).toBe("needs_reconciliation");
+      expect(unresolved.provider_job_id).toBe("fixture-accepted-" + variant.id);
+      expect(unresolved.snapshot_hash).toBe(approval!.snapshot_hash);
+      expect(
+        unresolved.attempts.filter((a: any) => a.operation === "submit"),
+      ).toHaveLength(1);
+      await expect(
+        domain.editVariant(ctx, variant.id, variant.current_revision_id, {
+          ...variant.payload,
+          caption: "Replacement must remain blocked",
+        }),
+      ).rejects.toMatchObject({ code: "delivery_active" });
+      await expect(
+        domain.rescheduleJob(
+          ctx,
+          job!.id,
+          new Date(Date.now() + 7200000).toISOString(),
+        ),
+      ).rejects.toMatchObject({ code: "cancel_first" });
+    } finally {
+      delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
+    }
+  });
+  it("preserves an uncertain submission without a provider ID when credentials are removed", async () => {
+    process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED = "true";
+    try {
+      const { variant, job } = await preparedLiveDelivery();
+      await processJob((await claimJob(job!.id))!, {
+        ...acceptedFixture,
+        submit: async () => {
+          throw new ProviderError(
+            "ambiguous",
+            "Fixture lost the accepted response",
+          );
+        },
+      });
+      expect((await domain.getJob(ctx, job!.id)).state).toBe(
+        "needs_reconciliation",
+      );
+      await removeIntegration(ctx, "postforme");
+      await due(job!.id);
+      await processJob((await claimJob(job!.id))!);
+      const unresolved = await domain.getJob(ctx, job!.id);
+      expect(unresolved.state).toBe("needs_reconciliation");
+      expect(unresolved.provider_job_id).toBeNull();
+      expect(
+        unresolved.attempts.filter((a: any) => a.operation === "submit"),
+      ).toHaveLength(1);
+      await expect(
+        domain.editVariant(
+          ctx,
+          variant.id,
+          variant.current_revision_id,
+          variant.payload,
+        ),
+      ).rejects.toMatchObject({ code: "delivery_active" });
+    } finally {
+      delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
+    }
+  });
+  it("does not record a false preparation failure after another lease takes over", async () => {
+    process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED = "true";
+    try {
+      const { job } = await preparedLiveDelivery();
+      await processJob((await claimJob(job!.id))!, acceptedFixture);
+      await saveIntegration(ctx, "postforme", { enabled: false });
+      await due(job!.id);
+      const stale = (await claimJob(job!.id))!;
+      const newerLease = randomUUID();
+      await db().query("update publish_jobs set lease_token=$1 where id=$2", [
+        newerLease,
+        job!.id,
+      ]);
+      const before = (
+        await db().query(
+          "select count(*)::int n from audit_events where resource_id=$1",
+          [job!.id],
+        )
+      ).rows[0].n;
+      await processJob(stale);
+      const after = await domain.getJob(ctx, job!.id);
+      expect(after.state).toBe("scheduled");
+      expect(after.lease_token).toBe(newerLease);
+      expect(
+        (
+          await db().query(
+            "select count(*)::int n from audit_events where resource_id=$1",
+            [job!.id],
+          )
+        ).rows[0].n,
+      ).toBe(before);
+    } finally {
+      delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
+    }
+  });
+  it.each([
+    { name: "no submission", outcomes: [], cancel: false, expected: "failed" },
+    {
+      name: "only final safe rejections",
+      outcomes: ["safe_rejection", "safe_rejection"],
+      cancel: false,
+      expected: "failed",
+    },
+    {
+      name: "safe then unknown",
+      outcomes: ["safe_rejection", "uncertain"],
+      cancel: false,
+      expected: "needs_reconciliation",
+    },
+    {
+      name: "unknown then safe",
+      outcomes: ["uncertain", "safe_rejection"],
+      cancel: false,
+      expected: "needs_reconciliation",
+    },
+    {
+      name: "unfinished reservation",
+      outcomes: ["started"],
+      cancel: false,
+      expected: "needs_reconciliation",
+    },
+    {
+      name: "late receipt contradicts safe rejection",
+      outcomes: ["safe_rejection"],
+      receipt: true,
+      cancel: false,
+      expected: "needs_reconciliation",
+    },
+    {
+      name: "cancel before any attempt",
+      outcomes: [],
+      cancel: true,
+      expected: "cancelled",
+    },
+    {
+      name: "cancel after safe rejection",
+      outcomes: ["safe_rejection"],
+      cancel: true,
+      expected: "cancelled",
+    },
+    {
+      name: "cancel after unknown response",
+      outcomes: ["uncertain"],
+      cancel: true,
+      expected: "needs_reconciliation",
+    },
+  ])(
+    "preserves historical publication evidence: $name",
+    async ({ outcomes, cancel, expected, receipt }) => {
+      process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED = "true";
+      try {
+        const { variant, job } = await preparedLiveDelivery();
+        for (const outcome of outcomes)
+          await db().query(
+            "insert into publish_attempts(workspace_id,job_id,operation,lease_token,outcome,finished_at,provider_response) values($1,$2,'submit',$3,$4,case when $4='started' then null else now() end,$5)",
+            [
+              ctx.workspaceId,
+              job!.id,
+              randomUUID(),
+              outcome,
+              receipt
+                ? {
+                    providerJobId: "fixture-late-" + variant.id,
+                    state: "scheduled",
+                    authoritative: true,
+                    raw: {},
+                  }
+                : null,
+            ],
+          );
+        await saveIntegration(ctx, "postforme", { enabled: false });
+        const claim = (await claimJob(job!.id))!;
+        // Cancellation may change generation while the current lease still owns work.
+        if (cancel)
+          await db().query(
+            "update publish_jobs set cancel_requested=true,generation=generation+1 where id=$1",
+            [job!.id],
+          );
+        await processJob(claim);
+        const result = await domain.getJob(ctx, job!.id);
+        expect(result.state).toBe(expected);
+        expect(result.cancel_requested).toBe(cancel);
+        expect(result.lease_token).toBeNull();
+        expect(result.attempts).toHaveLength(outcomes.length);
+        expect(result.error.publicationUncertain).toBe(
+          expected === "needs_reconciliation",
+        );
+        if (expected === "needs_reconciliation") {
+          expect(new Date(result.next_run_at).getTime()).toBeGreaterThan(
+            Date.now() + 30000,
+          );
+          await expect(
+            domain.editVariant(
+              ctx,
+              variant.id,
+              variant.current_revision_id,
+              variant.payload,
+            ),
+          ).rejects.toMatchObject({ code: "delivery_active" });
+          // Restoring setup allows reconciliation, never another submit.
+          let submissions = 0;
+          await due(job!.id);
+          await processJob((await claimJob(job!.id))!, {
+            ...acceptedFixture,
+            submit: async (envelope) => {
+              submissions++;
+              return acceptedFixture.submit(envelope, "unused", "unused");
+            },
+          });
+          expect(submissions).toBe(0);
+          expect(
+            (await domain.getJob(ctx, job!.id)).attempts.filter(
+              (attempt: any) => attempt.operation === "submit",
+            ),
+          ).toHaveLength(outcomes.length);
+        }
+      } finally {
+        delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
+      }
+    },
+  );
+  it("ignores an expired preparation lease without changing state or auditing failure", async () => {
+    process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED = "true";
+    try {
+      const { job } = await preparedLiveDelivery();
+      await saveIntegration(ctx, "postforme", { enabled: false });
+      const claim = (await claimJob(job!.id))!;
+      await db().query(
+        "update publish_jobs set lease_expires_at=now()-interval '1 second' where id=$1",
+        [job!.id],
+      );
+      const before = (
+        await db().query(
+          "select count(*)::int n from audit_events where resource_id=$1",
+          [job!.id],
+        )
+      ).rows[0].n;
+      await processJob(claim);
+      const result = await domain.getJob(ctx, job!.id);
+      expect(result.state).toBe("queued");
+      expect(result.lease_token).toBe(claim.lease_token);
+      expect(
+        (
+          await db().query(
+            "select count(*)::int n from audit_events where resource_id=$1",
+            [job!.id],
+          )
+        ).rows[0].n,
+      ).toBe(before);
+    } finally {
+      delete process.env.MEDIAFLOCK_LIVE_PUBLISHING_ENABLED;
+    }
   });
   it("keeps adapted open-source drafting defaults separate from account voice", () => {
     const ig = writingGuidance("instagram", "reel"),

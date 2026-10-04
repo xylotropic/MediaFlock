@@ -1939,7 +1939,8 @@ function ApprovalReview({
   const { request, timezone, session } = useApp(),
     a = useFormAction(),
     [reason, setReason] = useState("");
-  const canApprove = ["owner", "reviewer"].includes(session.role);
+  const canReview = ["owner", "reviewer"].includes(session.role);
+  const canApprove = session.role === "owner";
   const s = ap.snapshot;
   return (
     <Modal
@@ -1955,7 +1956,7 @@ function ApprovalReview({
             <>
               <button
                 className="btn"
-                disabled={a.busy || !canApprove}
+                disabled={a.busy || !canReview}
                 onClick={() =>
                   a.submit(
                     () =>
@@ -1993,7 +1994,7 @@ function ApprovalReview({
             <>
               <button
                 className="btn"
-                disabled={a.busy || !canApprove}
+                disabled={a.busy || !canReview}
                 onClick={() =>
                   a.submit(
                     () =>
@@ -2029,6 +2030,11 @@ function ApprovalReview({
     >
       <div className="stack">
         {a.error && <ErrorNote message={a.error} />}
+        {ap.status === "pending" && !canApprove && (
+          <div className="note">
+            Only the workspace owner can give final approval.
+          </div>
+        )}
         <div className="row spread">
           <div className="row">
             <Platform platform={ap.platform} />
@@ -2167,7 +2173,7 @@ function ApprovalReview({
             <div className="note">
               {canApprove
                 ? "Approve only after you check the content, account, media and time."
-                : "An owner or reviewer must approve this post."}{" "}
+                : "The workspace owner must give final approval for this post."}{" "}
               Schedule the post separately after approval.
             </div>
           </div>

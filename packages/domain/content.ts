@@ -1,3 +1,7 @@
+import {
+  activeDeliveryForVariant,
+  revokeVariantApprovals,
+} from "./approved-delivery";
 import { scoped, one, audit, type Context, type Tx } from "../db";
 import { authorize, contentHash } from "./auth";
 import { requireCondition } from "./errors";
@@ -316,11 +320,7 @@ export async function editVariant(
       "This variant changed. Refresh before editing.",
       409,
     );
-    const pending = await one(
-      tx,
-      `select j.id from publish_jobs j join publication_targets t on t.id=j.target_id join approvals a on a.id=t.approval_id where a.variant_id=$1 and j.state not in ('failed','cancelled','published') limit 1`,
-      [id],
-    );
+    const pending = await activeDeliveryForVariant(tx, ctx.workspaceId, id);
     requireCondition(
       !pending,
       "delivery_active",
@@ -328,9 +328,11 @@ export async function editVariant(
       409,
     );
     const revision = await insertRevision(tx, ctx, variant, payload, "manual");
-    await tx.query(
-      "update approvals set status='revoked',decided_at=now(),reason='Content changed after approval request' where variant_id=$1 and workspace_id=$2 and status in ('pending','approved')",
-      [id, ctx.workspaceId],
+    await revokeVariantApprovals(
+      tx,
+      ctx.workspaceId,
+      id,
+      "Content changed after approval request",
     );
     await audit(tx, ctx, "variant.revised", "variant", id, {
       previousRevisionId: expectedRevisionId,

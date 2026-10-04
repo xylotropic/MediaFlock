@@ -8,6 +8,10 @@ import {
   type Context,
 } from "../../packages/db";
 import { eligible } from "../../packages/domain/approvals";
+import {
+  recordPreparationFailure,
+  retainedPublicationEvidence,
+} from "../../packages/domain/approved-delivery";
 import { getConfig } from "../../packages/domain/config";
 import { safeError, DomainError } from "../../packages/domain/errors";
 import {
@@ -84,10 +88,10 @@ export async function processJob(
         ["published", "failed", "cancelled"].includes(job.state)
       )
         return null;
-      const prior = await one(
+      const prior = await retainedPublicationEvidence(
         tx,
-        "select id,provider_response from publish_attempts where job_id=$1 and operation='submit' and outcome<>'safe_rejection' order by started_at desc limit 1",
-        [job.id],
+        ctx.workspaceId,
+        job.id,
       );
       // A fenced late receipt can still supply a provider ID for an authenticated read.
       if (!job.provider_job_id && prior?.provider_response?.providerJobId)
@@ -116,17 +120,6 @@ export async function processJob(
           [job.approval_id, ctx.workspaceId],
         );
         await eligible(tx, ctx, approval!, variant!);
-        const reviewer = await one(
-          tx,
-          "select role from memberships where workspace_id=$1 and user_id=$2 and role in ('owner','reviewer')",
-          [ctx.workspaceId, approval!.approved_by],
-        );
-        if (!reviewer)
-          throw new DomainError(
-            "approval_reviewer_removed",
-            "The approving reviewer no longer has permission. Obtain a fresh approval.",
-            409,
-          );
         // Live submissions cannot silently turn a missed schedule into an immediate publication.
         if (
           getConfig().mode === "live" &&
@@ -163,26 +156,25 @@ export async function processJob(
     });
   } catch (error) {
     await scoped(ctx, async (tx) => {
-      await tx.query(
-        "update publish_jobs set state='failed',error=$1,lease_token=null,lease_expires_at=null,updated_at=now() where id=$2 and workspace_id=$3 and lease_token=$4",
-        [
-          {
-            code:
-              error instanceof DomainError ? error.code : "eligibility_failed",
-            message: safeError(error),
-          },
-          claim.id,
-          ctx.workspaceId,
-          claim.lease_token,
-        ],
+      const result = await recordPreparationFailure(
+        tx,
+        ctx.workspaceId,
+        claim.id,
+        claim.lease_token,
+        error,
       );
+      if (!result) return;
       await audit(
         tx,
         ctx,
-        "delivery.eligibility_failed",
+        result.state === "needs_reconciliation"
+          ? "delivery.preparation_blocked"
+          : result.state === "cancelled"
+            ? "delivery.cancelled"
+            : "delivery.eligibility_failed",
         "publish_job",
         claim.id,
-        { message: safeError(error) },
+        result.error,
       );
     });
     return;

@@ -1,3 +1,8 @@
+import {
+  activeDeliveryForAccount,
+  revokeAccountApprovals,
+  requestAccountCancellation,
+} from "./approved-delivery";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { scoped, one, audit, type Context } from "../db";
@@ -301,22 +306,17 @@ export async function finishConnection(
         ],
       );
       imported.push(row!);
-      await tx.query(
-        "update approvals set status='revoked',reason='Account was reauthorized',decided_at=now() where account_id=$1 and workspace_id=$2 and status in ('pending','approved')",
-        [row!.id, ctx.workspaceId],
+      await revokeAccountApprovals(
+        tx,
+        ctx.workspaceId,
+        row!.id,
+        "Account was reauthorized",
       );
-      await tx.query(
-        "update publish_jobs set cancel_requested=true,next_run_at=now(),updated_at=now(),error=$3 where account_id=$1 and workspace_id=$2 and state not in ('published','failed','cancelled')",
-        [
-          row!.id,
-          ctx.workspaceId,
-          {
-            code: "connection_changed",
-            message:
-              "Account was reauthorized. Existing delivery cancellation must be confirmed.",
-          },
-        ],
-      );
+      await requestAccountCancellation(tx, ctx.workspaceId, row!.id, {
+        code: "connection_changed",
+        message:
+          "Account was reauthorized. Existing delivery cancellation must be confirmed.",
+      });
       await audit(tx, ctx, "connection.verified", "social_account", row!.id, {
         providerAccountId: account.id,
         capabilities: "unknown",
@@ -427,11 +427,7 @@ export async function recordCapabilityReview(
       [id, ctx.workspaceId],
     );
     requireCondition(
-      !(await one(
-        tx,
-        "select id from publish_jobs where account_id=$1 and workspace_id=$2 and state not in ('published','failed','cancelled') limit 1",
-        [id, ctx.workspaceId],
-      )),
+      !(await activeDeliveryForAccount(tx, ctx.workspaceId, id)),
       "delivery_active",
       "Confirm cancellation of pending deliveries before changing this permission review.",
       409,
@@ -474,9 +470,11 @@ export async function recordCapabilityReview(
         ctx.workspaceId,
       ],
     );
-    await tx.query(
-      "update approvals set status='revoked',reason='Permission review changed',decided_at=now() where account_id=$1 and workspace_id=$2 and status in ('pending','approved')",
-      [id, ctx.workspaceId],
+    await revokeAccountApprovals(
+      tx,
+      ctx.workspaceId,
+      id,
+      "Permission review changed",
     );
     await audit(tx, ctx, "account.permissions_attested", "social_account", id, {
       accountType: data.accountType,
@@ -518,10 +516,7 @@ export async function disconnectAccount(ctx: Context, id: string) {
       "update social_accounts set status='disconnected',connection_generation=connection_generation+1,capability_generation=capability_generation+1 where id=$1 and workspace_id=$2 returning *",
       [id, ctx.workspaceId],
     );
-    await tx.query(
-      "update publish_jobs set cancel_requested=true,next_run_at=now(),updated_at=now() where account_id=$1 and workspace_id=$2 and state not in ('published','cancelled','failed')",
-      [id, ctx.workspaceId],
-    );
+    await requestAccountCancellation(tx, ctx.workspaceId, id);
     await audit(tx, ctx, "account.disconnected", "social_account", id, {
       provenance: account.provenance,
       pendingDeliveries: "cancellation_requested",
