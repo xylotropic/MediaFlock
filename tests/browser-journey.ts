@@ -59,7 +59,14 @@ async function navigate(name: string) {
     page.getByText("Loading your content…", { exact: true }),
   ).toHaveCount(0);
   if (name === "Connections")
-    await expect(page.getByText("Connected", { exact: true })).toBeVisible();
+    await expect(
+      page
+        .locator("article.connection-row")
+        .filter({
+          has: page.getByRole("heading", { name: "Supabase", exact: true }),
+        })
+        .getByText("Connected", { exact: true }),
+    ).toBeVisible();
 }
 async function get(path: string) {
   const r = await context.request.get(origin + "/api/v1/" + path);
