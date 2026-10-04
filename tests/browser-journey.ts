@@ -275,7 +275,7 @@ try {
   ).toHaveAttribute("aria-pressed", "true");
   await expect(
     page.getByRole("button", { name: "List", exact: true }),
-  ).toHaveCSS("background-color", "rgb(27, 27, 27)");
+  ).toHaveCSS("background-image", /linear-gradient/);
   await page.getByRole("button", { name: "Month", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Month", exact: true }),
