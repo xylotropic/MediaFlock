@@ -1,4 +1,5 @@
 "use client";
+import { ElevenLabsConnection } from "./elevenlabs-connection";
 import { Button, ButtonLink } from "./base/buttons/button";
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
@@ -78,9 +79,6 @@ export function SubscriptionConnections() {
         <ServiceMark service="chatgpt" />
         <div className="grow">
           <h3>ChatGPT</h3>
-          <p className="small muted">
-            AI drafting with your ChatGPT subscription
-          </p>
         </div>
         <span className="tiny muted">
           {error
@@ -250,30 +248,7 @@ export function SubscriptionConnections() {
           </a>
         </p>
       )}
-      <article className="connection-row">
-        <ServiceMark service="elevenlabs" />
-        <div className="grow">
-          <h3>ElevenLabs</h3>
-          <p className="small muted">
-            Voice creation with your existing subscription
-          </p>
-          <p className="tiny muted">
-            Create and download voices in ElevenLabs. MediaFlock is not
-            connected to your ElevenLabs account.
-          </p>
-        </div>
-        <ButtonLink
-          trailingIcon={ExternalLink}
-          variant="secondary"
-          size="small"
-          className=""
-          href="https://elevenlabs.io/app"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Open ElevenLabs
-        </ButtonLink>
-      </article>
+      <ElevenLabsConnection />
     </>
   );
 }

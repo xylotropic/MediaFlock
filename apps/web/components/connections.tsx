@@ -47,7 +47,6 @@ export function ConnectionsPage() {
               <ServiceMark service={item.id} />
               <div className="grow">
                 <h3>{item.title}</h3>
-                <p className="small muted">{item.description}</p>
                 {entry?.last_checked_at && (
                   <p className="tiny muted">
                     Checked <LocalTime value={entry.last_checked_at} />
@@ -115,7 +114,6 @@ export function ConnectionsPage() {
           <ServiceMark service="supabase" />
           <div className="grow">
             <h3>Supabase</h3>
-            <p className="small muted">Database, sign-in and private media</p>
           </div>
           <span className="tiny muted">
             {healthError || health?.backend === "unavailable"

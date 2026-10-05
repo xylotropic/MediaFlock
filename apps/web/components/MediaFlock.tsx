@@ -1,4 +1,5 @@
 "use client";
+import { CreateContent } from "./create-content";
 import { Button } from "./base/buttons/button";
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import {
@@ -31,7 +32,6 @@ import {
   Analytics,
   Accounts,
   SettingsPage,
-  PackageEditor,
   JobInspector,
 } from "./screens";
 import { ConnectionsPage } from "./connections";
@@ -383,7 +383,7 @@ export function MediaFlock() {
         </Modal>
       )}
       {packageModal && (
-        <PackageEditor
+        <CreateContent
           onClose={() => setPackageModal(false)}
           onSaved={(id) => {
             setPackageModal(false);

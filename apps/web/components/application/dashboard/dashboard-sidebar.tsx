@@ -267,8 +267,17 @@ export function DashboardSidebar({
           collapsed ? "flex-col py-2" : "p-2",
         )}
       >
-        <Avatar size="lg" color="blue" initials={initials} aria-label={name} />
-        <Collapsible collapsed={collapsed} className="board-sidebar-identity grow">
+        <Avatar
+          className="board-sidebar-avatar"
+          size="lg"
+          color="blue"
+          initials={initials}
+          aria-label={name}
+        />
+        <Collapsible
+          collapsed={collapsed}
+          className="board-sidebar-identity grow"
+        >
           <span className="min-w-0 text-caption-1-medium text-text-primary">
             <span className="block truncate">{name}</span>
             <span className="block text-caption-2-regular text-text-secondary">
@@ -284,7 +293,7 @@ export function DashboardSidebar({
           aria-label="Sign out"
           title="Sign out"
           onClick={onSignOut}
-          className="shrink-0 text-foreground-icon-secondary"
+          className="board-sidebar-signout shrink-0 text-foreground-icon-secondary"
         />
       </div>
     </aside>

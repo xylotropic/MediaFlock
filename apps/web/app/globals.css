@@ -3083,3 +3083,94 @@ button.nav-backdrop[data-boardui] {
 .app .tabs button[data-boardui] {
   gap: 6px;
 }
+
+/* Keep the collapsed rail focused on navigation. Mobile drawers remain full. */
+@media (min-width: 901px) {
+  .board-sidebar.collapsed .board-sidebar-brand,
+  .board-sidebar.collapsed .board-sidebar-search,
+  .board-sidebar.collapsed .board-sidebar-avatar {
+    display: none;
+  }
+  .board-sidebar.collapsed .board-sidebar-heading {
+    flex-direction: row;
+    justify-content: center;
+  }
+  .board-sidebar.collapsed .board-sidebar-account {
+    background: transparent;
+    padding: 0;
+  }
+  .board-sidebar.collapsed .board-collapse,
+  .board-sidebar.collapsed .board-sidebar-signout {
+    background: transparent;
+    color: var(--color-foreground-icon-secondary);
+    box-shadow: none;
+  }
+  .board-sidebar.collapsed .board-collapse:hover,
+  .board-sidebar.collapsed .board-sidebar-signout:hover {
+    background: var(--color-background-tertiary-default);
+  }
+}
+.board-segmented-tabs button[aria-pressed="false"] {
+  background: transparent;
+  color: var(--color-text-secondary);
+  box-shadow: none;
+}
+.board-segmented-tabs button[aria-pressed="false"]:hover {
+  background: var(--color-background-primary-default);
+  color: var(--color-text-primary);
+}
+.app select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23666' stroke-width='1.6' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 42px;
+}
+.app .calendar-select .select {
+  background-image: none;
+  padding-right: 44px;
+}
+.calendar-select > svg {
+  right: 16px;
+}
+
+.creation-choices {
+  display: grid;
+  gap: 12px;
+}
+.creation-choice[data-boardui] {
+  display: flex;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 24px;
+  white-space: normal;
+  text-align: left;
+}
+.creation-choice > strong {
+  flex: 1;
+}
+.creation-choice > svg:first-child {
+  color: var(--color-button-ghost-foreground);
+}
+.talk-microphone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 92px;
+}
+.talk-idea textarea {
+  width: 100%;
+  min-height: 230px;
+  resize: vertical;
+  border: 1px solid var(--color-border-button-default);
+  border-radius: 12px;
+  padding: 16px;
+  background: white;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.talk-idea audio {
+  width: 100%;
+}

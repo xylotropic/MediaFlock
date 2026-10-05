@@ -1,3 +1,4 @@
+import * as voice from "../voice";
 import { boundedBody } from "../security";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
@@ -42,7 +43,7 @@ export async function dispatch(
   const [root, resource, action] = path;
   if (
     resource &&
-    !["connections", "integrations", "subscriptions"].includes(root)
+    !["connections", "integrations", "subscriptions", "voice"].includes(root)
   )
     id.parse(resource);
   if (root === "subscriptions" && resource === "chatgpt") {
@@ -106,6 +107,14 @@ export async function dispatch(
       404,
     );
   }
+  if (root === "voice" && resource === "status" && method === "GET")
+    return voice.voiceStatus(ctx);
+  if (root === "voice" && resource === "check" && method === "POST")
+    return voice.checkVoiceAccount(ctx);
+  if (root === "voice" && resource === "acknowledge" && method === "POST")
+    return voice.acknowledgeVoice(ctx, z.uuid().parse(body.requestId));
+  if (root === "ideas" && method === "POST" && !resource)
+    return ai.polishIdea(ctx, z.string().min(1).max(10000).parse(body.text));
   if (root === "password" && method === "POST") {
     integrations.credentialOwner(ctx);
     const input = z
@@ -417,13 +426,13 @@ export async function dispatch(
     if (resource && !action && method === "PUT")
       return integrations.saveIntegration(
         ctx,
-        z.literal("postforme").parse(resource),
+        z.enum(["postforme", "elevenlabs"]).parse(resource),
         body,
       );
     if (resource && !action && method === "DELETE")
       return integrations.removeIntegration(
         ctx,
-        z.enum(["openai", "postforme"]).parse(resource),
+        z.enum(["openai", "postforme", "elevenlabs"]).parse(resource),
       );
     if (resource && action === "check" && method === "POST")
       return integrations.checkIntegration(

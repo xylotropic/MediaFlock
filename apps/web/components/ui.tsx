@@ -130,7 +130,6 @@ export function Empty({
 }
 export function Header({
   title,
-  description,
   actions,
 }: {
   title: string;
@@ -141,7 +140,6 @@ export function Header({
     <div className="page-heading">
       <div>
         <h1>{title}</h1>
-        {description && <p>{description}</p>}
       </div>
       {actions && <div className="row wrap">{actions}</div>}
     </div>

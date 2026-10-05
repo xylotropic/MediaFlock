@@ -3040,12 +3040,6 @@ export function Analytics() {
               description="Metrics appear after your approved posts publish and account access permits them."
             />
           )}
-          <div className="tiny muted">
-            {account === "all"
-              ? "Each chart uses one account, format and measurement definition."
-              : "Compare posts from the same account and format, measured after the same time."}{" "}
-            Lifetime totals are never added together.
-          </div>
         </div>
       </Panel>
       <Panel title="Date range (UTC)">

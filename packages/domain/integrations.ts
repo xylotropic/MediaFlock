@@ -84,6 +84,8 @@ export const integrationInput = z.object({
       credentialMode: z.enum(["quickstart", "own"]).optional(),
       connectionCallbackConfigured: z.boolean().optional(),
       publishingEnabled: z.boolean().optional(),
+      includedCreditsOnly: z.boolean().optional(),
+      accountLabel: z.string().max(200).optional(),
     })
     .default({}),
 });
@@ -111,7 +113,7 @@ export async function listIntegrations(ctx: Context) {
 }
 export async function saveIntegration(
   ctx: Context,
-  service: "openai" | "postforme",
+  service: "openai" | "postforme" | "elevenlabs",
   input: unknown,
 ) {
   credentialOwner(ctx);
@@ -136,6 +138,12 @@ export async function saveIntegration(
       "key_required",
       "Provide a new API key before enabling this integration.",
     );
+    if (service === "elevenlabs" && data.enabled)
+      requireCondition(
+        data.config.includedCreditsOnly === true,
+        "voice_credit_quota",
+        "Use included credits only and disable credit extensions before enabling transcription.",
+      );
     if (service === "openai")
       requireCondition(
         data.config.model || existing?.config.model,
@@ -144,7 +152,7 @@ export async function saveIntegration(
       );
     const row = await one(
       tx,
-      "insert into integration_secrets(workspace_id,service,ciphertext,iv,tag,config,enabled,status,updated_by) values($1,$2,$3,$4,$5,$6,$7,'configured',$8) on conflict(workspace_id,service) do update set ciphertext=excluded.ciphertext,iv=excluded.iv,tag=excluded.tag,config=excluded.config,enabled=excluded.enabled,status='configured',updated_by=excluded.updated_by,updated_at=now() returning id,service,enabled,config,status,updated_at",
+      "insert into integration_secrets(workspace_id,service,ciphertext,iv,tag,config,enabled,status,updated_by) values($1,$2,$3,$4,$5,$6,$7,'configured',$8) on conflict(workspace_id,service) do update set ciphertext=excluded.ciphertext,iv=excluded.iv,tag=excluded.tag,config=excluded.config,enabled=excluded.enabled,status='configured',updated_by=excluded.updated_by,updated_at=now(),generation=integration_secrets.generation+1 returning id,service,enabled,config,status,updated_at",
       [
         ctx.workspaceId,
         service,
@@ -172,7 +180,7 @@ export async function removeIntegration(ctx: Context, service: string) {
   return scoped(ctx, async (tx) => {
     const row = await one(
       tx,
-      "update integration_secrets set ciphertext=null,iv=null,tag=null,enabled=false,status='revoked',updated_by=$1,updated_at=now() where workspace_id=$2 and service=$3 returning id,service,status",
+      "update integration_secrets set ciphertext=null,iv=null,tag=null,enabled=false,status='revoked',updated_by=$1,updated_at=now(),generation=generation+1 where workspace_id=$2 and service=$3 returning id,service,status",
       [ctx.userId, ctx.workspaceId, service],
     );
     requireCondition(row, "not_found", "Integration key not found.", 404);
