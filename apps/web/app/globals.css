@@ -2875,6 +2875,9 @@ html {
 .board-sidebar-brand .brand svg {
   width: 26px;
 }
+.board-sidebar.collapsed .board-sidebar-identity {
+  display: none;
+}
 .board-mobile-close {
   display: none;
 }
@@ -2949,6 +2952,9 @@ button.nav-backdrop[data-boardui] {
   .board-sidebar.collapsed .board-sidebar-account {
     flex-direction: row;
     padding: 8px;
+  }
+  .board-sidebar.collapsed .board-sidebar-identity {
+    display: flex;
   }
   .board-sidebar.collapsed .max-w-0 {
     max-width: 100%;
