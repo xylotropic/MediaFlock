@@ -186,15 +186,6 @@ export function LandingFeatures({ paused }: { paused: boolean }) {
               <i />
               <i />
             </div>
-            <ThinkingOrb
-              state="searching"
-              size={64}
-              theme="light"
-              color="#387ccc"
-              aria-hidden="true"
-              paused={paused}
-              className={styles.insightsOrb}
-            />
           </div>
           <div className={styles.featureCopy}>
             <h3>Keep the whole picture.</h3>
@@ -203,6 +194,15 @@ export function LandingFeatures({ paused }: { paused: boolean }) {
               plan your next post.
             </p>
           </div>
+          <ThinkingOrb
+            state="searching"
+            size={64}
+            theme="light"
+            color="#387ccc"
+            aria-hidden="true"
+            paused={paused}
+            className={styles.insightsOrb}
+          />
         </article>
       </div>
     </section>

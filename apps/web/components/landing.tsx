@@ -8,6 +8,7 @@ import { ThinkingOrb } from "thinking-orbs";
 import { Brand } from "./ui";
 import { useReducedMotion } from "./effects";
 import { LandingFeatures } from "./landing-features";
+import { LandingBackground } from "./landing-background";
 import { PlatformMark, socialPlatforms } from "./platform-mark";
 import { PublicFooter } from "./public-footer";
 import styles from "./landing.module.css";
@@ -43,6 +44,7 @@ export function Landing() {
 
       <main>
         <section className={styles.hero} aria-labelledby="landing-title">
+          <LandingBackground paused={motionPaused} />
           <div className={styles.heroCopy}>
             <h1 id="landing-title">
               Make it.

@@ -14,6 +14,7 @@ export default defineConfig([
   globalIgnores([
     "**/.next/**",
     "**/.next-demo/**",
+    "apps/web/public/vendor/vanta/**",
     "artifacts/**",
     "docs/**",
     "supabase/**",

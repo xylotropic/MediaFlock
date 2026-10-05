@@ -1,0 +1,12 @@
+Unmodified, pinned Vanta NET and Three.js releases for MediaFlock's homepage.
+
+Vanta.js 0.5.24 — Copyright (c) 2020 Teng Bao — MIT.
+https://github.com/tengbao/vanta
+Source package: https://registry.npmjs.org/vanta/-/vanta-0.5.24.tgz
+
+Three.js r134 (0.134.0) — Copyright (c) 2010-2021 three.js authors — MIT.
+https://github.com/mrdoob/three.js/tree/r134
+Source package: https://registry.npmjs.org/three/-/three-0.134.0.tgz
+
+Package integrity and exact upstream file hashes were verified before copying.
+License texts are included alongside these files.

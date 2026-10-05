@@ -43,6 +43,8 @@
 }
 
 .hero {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
   align-items: center;
@@ -50,6 +52,21 @@
   max-width: 1320px;
   margin: auto;
   padding: 72px 44px 100px;
+}
+.heroBackground {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.4;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 16%,
+    #000 75%,
+    transparent
+  );
 }
 
 .heroCopy h1 {
@@ -328,6 +345,7 @@
   --card-accent: #19836f;
 }
 .insightsCard {
+  position: relative;
   --card-surface: #f1f7ff;
   --card-glow: #c6ddf8;
   --card-line: #d7e4f4;
@@ -739,9 +757,12 @@
 .insightsOrb {
   pointer-events: none;
   position: absolute !important;
-  top: 12px;
-  left: calc(50% - 32px);
+  bottom: 20px;
+  right: 22px;
   z-index: 4;
+}
+.insightsCard .featureCopy {
+  padding-right: 104px;
 }
 
 .landing[data-motion="paused"] *,
@@ -1065,8 +1086,13 @@
     width: 180px;
   }
   .insightsOrb {
-    left: calc(50% - 32px);
-    top: 9px;
+    right: 16px;
+    bottom: 18px;
+    width: 48px !important;
+    height: 48px !important;
+  }
+  .insightsCard .featureCopy {
+    padding-right: 80px;
   }
 }
 
