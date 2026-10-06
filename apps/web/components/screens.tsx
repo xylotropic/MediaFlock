@@ -2612,7 +2612,7 @@ export function Calendar() {
   const { data: jobs, error } = useLoad("publications"),
     { data: accounts } = useLoad("accounts"),
     { timezone, inspectJob, mode } = useApp(),
-    [view, setView] = useState<CalendarView>("week"),
+    [view, setView] = useState<CalendarView>("month"),
     [anchor, setAnchor] = useState<string | null>(null),
     [account, setAccount] = useState("all"),
     [state, setState] = useState("active"),
