@@ -1,4 +1,5 @@
 "use client";
+import "../../styles/editor.css";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import {
   Plus,
