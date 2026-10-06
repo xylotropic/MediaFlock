@@ -18,6 +18,7 @@ import {
   X,
   ArrowRight,
   Plus,
+  Film,
 } from "lucide-react";
 import { OperationStatus } from "./effects";
 import { AppContext, type LoadCache } from "./context";
@@ -36,9 +37,12 @@ import {
 } from "./screens";
 import { ConnectionsPage } from "./connections";
 import { AuthPanel } from "./auth-screen";
+import { EditorProvider } from "./editor/provider";
+import { VideoEditor } from "./editor/screen";
 const navigation = [
   ["overview", "Overview", LayoutDashboard],
   ["studio", "Content", SquarePen],
+  ["editor", "Video editor", Film],
   ["library", "Library", FolderOpen],
   ["approvals", "Approvals", CheckCheck],
   ["calendar", "Calendar", CalendarDays],
@@ -215,6 +219,15 @@ export function MediaFlock() {
     .join("");
   return (
     <AppContext.Provider value={context}>
+      <EditorProvider
+        key={`${context.mode}:${session.user.id}:${session.workspaceId}`}
+        scope={{
+          backend: window.location.origin,
+          environment: context.mode,
+          userId: session.user.id,
+          workspaceId: session.workspaceId,
+        }}
+      >
       <div className={"app " + (collapsed ? "sidebar-is-collapsed" : "")}>
         {menu && (
           <Button
@@ -301,6 +314,8 @@ export function MediaFlock() {
               <Overview />
             ) : screen === "studio" ? (
               <Studio packageId={packageId} onChoose={setPackageId} />
+            ) : screen === "editor" ? (
+              <VideoEditor />
             ) : screen === "library" ? (
               <Library />
             ) : screen === "approvals" ? (
@@ -392,6 +407,7 @@ export function MediaFlock() {
         />
       )}
       {jobId && <JobInspector id={jobId} onClose={() => setJobId(null)} />}
+      </EditorProvider>
     </AppContext.Provider>
   );
 }

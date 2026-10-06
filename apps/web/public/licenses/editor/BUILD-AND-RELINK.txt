@@ -1,0 +1,66 @@
+MediaFlock local video editor — matching AAC source and relinking
+
+This release uses unmodified FFmpeg n8.0.1, commit
+894da5ca7d742e4429ffb2af534fcda0103ef593, under LGPL 2.1 or later.
+The AAC wrapper is Mediabunny 1.61.1, commit
+922054aaac0bfe5e48545a46205038d6e73dc0d1, under MPL 2.0.
+MediaFlock modifies only wrapper packet presentation timing and valid input
+length; its complete modified source is included. No GPL, nonfree, or
+external codec libraries are enabled in the FFmpeg build.
+
+Download ffmpeg-n8.0.1-source.tar.gz and
+mediabunny-aac-1.61.1-mediaflock-source.tar.gz from this same directory.
+The archives contain all FFmpeg source, the modified wrapper, the bridge,
+its shared TypeScript sources, upstream package lock, and the bundle script.
+The FFmpeg archive includes the exact used config.h/config.mak for reference.
+The prebuilt JS/WASM bridge is also supplied as aac-ffmpeg-n8.0.1.js.txt.
+
+Install official Emscripten SDK 4.0.10 and activate/source its environment.
+Extract both archives into one directory. Set these two variables to their
+absolute extracted paths (retain quoting when paths contain spaces):
+
+  FFMPEG_PATH="/path/to/ffmpeg-n8.0.1"
+  WRAPPER_PATH="/path/to/mediabunny-aac-source"
+
+Then run:
+
+  cd "$FFMPEG_PATH"
+  emconfigure ./configure --target-os=none --arch=x86_32 \
+    --enable-cross-compile --disable-asm --disable-x86asm \
+    --disable-inline-asm --disable-programs --disable-doc --disable-debug \
+    --disable-all --disable-everything --disable-autodetect \
+    --disable-pthreads --disable-runtime-cpudetect \
+    --enable-avcodec --enable-encoder=aac \
+    --cc=emcc --cxx=em++ --ar=emar --ranlib=emranlib \
+    --extra-cflags="-DNDEBUG -Oz -flto -msimd128" \
+    --extra-ldflags="-Oz -flto"
+  emmake make -j 8
+  mkdir -p "$WRAPPER_PATH/packages/aac-encoder/build"
+  emcc "$WRAPPER_PATH/packages/aac-encoder/src/bridge.c" \
+    "$FFMPEG_PATH/libavcodec/libavcodec.a" \
+    "$FFMPEG_PATH/libavutil/libavutil.a" -I "$FFMPEG_PATH" \
+    -s MODULARIZE=1 -s EXPORT_ES6=1 -s SINGLE_FILE=1 \
+    -s ALLOW_MEMORY_GROWTH=1 -s ENVIRONMENT=web,worker -s FILESYSTEM=0 \
+    -s MALLOC=emmalloc -s SUPPORT_LONGJMP=0 \
+    -s EXPORTED_RUNTIME_METHODS=cwrap,HEAPU8 \
+    -s EXPORTED_FUNCTIONS=_malloc,_free -msimd128 -flto -Oz \
+    -o "$WRAPPER_PATH/packages/aac-encoder/build/aac.js"
+  cd "$WRAPPER_PATH"
+  npm ci --ignore-scripts --workspaces=false
+  ./node_modules/.bin/tsx scripts/build-mediaflock-aac.ts
+
+To relink MediaFlock with this build or with your own compatible modifications:
+clone https://github.com/xylotropic/MediaFlock and check out the release commit.
+Copy the rebuilt packages/aac-encoder/dist/bundles/mediabunny-aac-encoder.mjs
+into MediaFlock's vendor/aac-encoder/dist/bundles/ directory. The application
+imports that local package, not a registry binary. Reinstall with pnpm install
+and run pnpm build. You can run the rebuilt application with pnpm start.
+The application's complete source and build configuration are in that public
+repository; no private object or secret is needed to relink the local editor.
+Server credentials are needed only for the separate account/publishing service.
+
+Modification and reverse engineering of these components for debugging those
+modifications are permitted by their respective licenses. MediaFlock does not
+claim ownership of FFmpeg or restrict those rights. There are no FFmpeg source
+changes beyond generated build configuration. See ffmpeg-LGPL-2.1.txt and the
+included MPL-2.0 licenses for the full terms.

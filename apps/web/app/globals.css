@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../styles/theme.css";
 @import "../styles/typography.css";
+@import "../styles/editor.css";
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant rtl (&:dir(rtl));
 @custom-variant ltr (&:dir(ltr));

@@ -5,8 +5,8 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "dev": "next dev apps/web --hostname 127.0.0.1 --port 3210",
-    "build": "next build apps/web",
+    "dev": "pnpm editor:assets && next dev apps/web --hostname 127.0.0.1 --port 3210",
+    "build": "pnpm editor:assets && next build apps/web",
     "start": "next start apps/web --hostname 127.0.0.1 --port 3210",
     "worker": "tsx apps/worker/main.ts",
     "worker:once": "tsx apps/worker/main.ts --once",
@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:browser": "tsx tests/browser-journey.ts",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "dev:demo": "MEDIAFLOCK_ENV_FILE=.env.demo next dev apps/web --hostname 127.0.0.1 --port 3211",
+    "dev:demo": "pnpm editor:assets && MEDIAFLOCK_ENV_FILE=.env.demo next dev apps/web --hostname 127.0.0.1 --port 3211",
     "worker:demo": "MEDIAFLOCK_ENV_FILE=.env.demo tsx apps/worker/main.ts",
     "setup:demo": "tsx scripts/setup.ts",
     "setup:production": "tsx scripts/setup-production.ts",
@@ -28,7 +28,8 @@
     "service:restart": "tsx scripts/service.ts restart",
     "service:stop": "tsx scripts/service.ts stop",
     "service:start": "tsx scripts/service.ts start",
-    "api:generate": "tsx scripts/openapi.ts"
+    "api:generate": "tsx scripts/openapi.ts",
+    "editor:assets": "tsx scripts/build-editor-assets.ts"
   },
   "dependencies": {
     "@fontsource/instrument-serif": "5.3.0",
@@ -57,7 +58,11 @@
     "thinking-orbs": "0.3.2",
     "typegpu": "0.12.6",
     "vgpu": "0.5.0",
-    "zod": "4.6.5"
+    "zod": "4.6.5",
+    "@alexanderolsen/libsamplerate-js": "2.1.2",
+    "@mediabunny/aac-encoder": "file:vendor/aac-encoder",
+    "@noble/hashes": "2.4.0",
+    "mediabunny": "1.61.1"
   },
   "devDependencies": {
     "@eslint/compat": "2.1.1",
@@ -75,6 +80,7 @@
     "tailwindcss": "4.2.1",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
-    "vitest": "5.0.3"
+    "vitest": "5.0.3",
+    "esbuild": "0.27.7"
   }
 }

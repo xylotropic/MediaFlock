@@ -15,6 +15,9 @@ export default defineConfig([
     "**/.next/**",
     "**/.next-demo/**",
     "apps/web/public/vendor/vanta/**",
+    // Generated from the tested playback TypeScript.
+    "apps/web/public/worklets/editor-pcm.js",
+    "vendor/aac-encoder/**",
     "artifacts/**",
     "docs/**",
     "supabase/**",

@@ -1,0 +1,24 @@
+MediaFlock local video editor third-party software
+
+Mediabunny 1.61.1 — Copyright (c) Vanilagy — Mozilla Public License 2.0.
+Unmodified source: https://github.com/Vanilagy/mediabunny/tree/922054aaac0bfe5e48545a46205038d6e73dc0d1
+
+@mediabunny/aac-encoder 1.61.1 — Copyright (c) Vanilagy — Mozilla Public License 2.0.
+MediaFlock modification: retain actual FFmpeg packet presentation timestamps,
+negative encoder priming and valid input length, rather than assigning a counter.
+The corresponding modified wrapper source is provided beside this notice in
+./aac-encoder-1.61.1-source/encoder.ts.txt. Its MPL license also applies to these
+modifications. The source bridge and upstream build instructions are included.
+
+@noble/hashes 2.4.0 — Copyright (c) Paul Miller — MIT.
+https://github.com/paulmillr/noble-hashes
+
+@alexanderolsen/libsamplerate-js 2.1.2 — Copyright (c) Alexander Olsen — MIT.
+Its underlying libsamplerate is Copyright (c) Erik de Castro Lopo — BSD 2-clause.
+https://github.com/aolsenjazz/libsamplerate-js
+
+The AAC encoder incorporates unmodified FFmpeg n8.0.1 under LGPL 2.1 or later.
+Its complete matching source is ffmpeg-n8.0.1-source.tar.gz in this directory.
+The complete modified wrapper/bridge source is
+mediabunny-aac-1.61.1-mediaflock-source.tar.gz. BUILD-AND-RELINK.txt explains
+compilation, replacement and relinking. See ffmpeg-LGPL-2.1.txt for its terms.
